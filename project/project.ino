@@ -60,7 +60,7 @@ void setup() {
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
   tft.drawString("Connected to WiFi", 10, 10);
   Serial.println("Connected to WiFi");
-  // Add your code bellow
+  // Add your code bellow 
 
 }
 
@@ -72,7 +72,8 @@ void loop() {
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.drawString("Hello", 10, 10);
+  tft.drawString("Hello world", 10, 10);
+  
   delay(1000);
 }
 
