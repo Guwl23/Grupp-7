@@ -72,7 +72,7 @@ void loop() {
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.drawString("Hello student", 10, 10);
+  tft.drawString("Hello world", 10, 10);
   
   delay(1000);
 }
