@@ -14,7 +14,7 @@
 
 // Remember to remove these before commiting in GitHub
 String ssid = "ssid";
-String password = "password";
+String password = "password" ;
 
 // "tft" is the graphics libary, which has functions to draw on the screen
 TFT_eSPI tft = TFT_eSPI();
@@ -65,10 +65,10 @@ void setup() {
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.drawString("version 1.01", 10, 10);
-  tft.drawString("Group 7", 100, 10);
+  tft.drawString("version 1.01", 20, 10);
+  tft.drawString("Group 7", 100, 50);
   
-  delay(3500);
+  delay(4000);
 
 }
 
