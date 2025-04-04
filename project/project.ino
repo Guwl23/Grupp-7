@@ -62,6 +62,14 @@ void setup() {
   Serial.println("Connected to WiFi");
   // Add your code bellow 
 
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextSize(2);
+  tft.drawString("version 1.01", 20, 10);
+  tft.drawString("Group 7", 100, 50);
+  
+  delay(4000);
+
 }
 
 /**
