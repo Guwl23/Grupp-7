@@ -83,7 +83,42 @@ void loop() {
   tft.drawString("Hello world", 10, 10);
   
   delay(1000);
-}
+
+  // U.S 2.1 - As a user, I want a menu to navigate between different screens using the two buttons, 
+  // like forecast and settings screen.
+
+  int currentpage = 0;
+  int lastPage = -1;
+  
+  if (digitalRead(PIN_BUTTON_1) == LOW) {
+    currentPage = 0;
+  }
+
+  if (digitalRead(PIN_BUTTON_2) == LOW) {
+    currentPage = 1;
+  }
+
+  
+  if (currentPage != lastPage) {
+    tft.fillScreen(TFT_BLACK);
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.setTextSize(2);
+
+    if (currentPage == 0) {
+      tft.drawString("Forecast", 50, 50);
+    }   else if (currentPage == 1) {
+      tft.drawString("Settings", 50, 50);
+    }
+
+    lastPage = currentPage;
+    delay(400); 
+  }
+
+
+
+  
+} 
+
 
 
 // TFT Pin check
