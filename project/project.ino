@@ -87,8 +87,8 @@ void loop() {
   // U.S 2.1 - As a user, I want a menu to navigate between different screens using the two buttons, 
   // like forecast and settings screen.
 
-  int currentpage = 0;
-  int lastPage = -1;
+  static int currentpage = 0;
+  static int lastPage = -1;
   
   if (digitalRead(PIN_BUTTON_1) == LOW) {
     currentPage = 0;
@@ -116,7 +116,7 @@ void loop() {
 
 
 
-  
+
 } 
 
 
