@@ -77,10 +77,10 @@ void setup() {
  * Add your code here to perform tasks repeatedly.
  */
 void loop() {
-  tft.fillScreen(TFT_BLACK);
+  /*tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.drawString("Hello world", 10, 10); 
+  tft.drawString("Hello world", 10, 10); */
   
   delay(1000); 
 
