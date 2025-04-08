@@ -105,9 +105,9 @@ void loop() {
     tft.setTextSize(2);
 
     if (currentPage == 0) {
-      tft.drawString("Forecast", 50, 50);
+      tft.drawString("Forecast", 40,20 );
     }   else if (currentPage == 1) {
-      tft.drawString("Settings", 50, 50);
+      tft.drawString("Settings", 280, 20);
     }
 
     lastPage = currentPage;
