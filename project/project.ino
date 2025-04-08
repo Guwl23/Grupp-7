@@ -84,12 +84,12 @@ void loop() {
   
   delay(1000);
 
-  // U.S 2.1 - As a user, I want a menu to navigate between different screens using the two buttons, 
+  // U.S 2.1 - As a user, I want a menu to navigate between different screens using the two buttons,
   // like forecast and settings screen.
 
-  static int currentpage = 0;
+  static int currentPage = 0;
   static int lastPage = -1;
-  
+
   if (digitalRead(PIN_BUTTON_1) == LOW) {
     currentPage = 0;
   }
@@ -98,7 +98,7 @@ void loop() {
     currentPage = 1;
   }
 
-  
+
   if (currentPage != lastPage) {
     tft.fillScreen(TFT_BLACK);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
@@ -111,13 +111,13 @@ void loop() {
     }
 
     lastPage = currentPage;
-    delay(400); 
+    delay(400);
   }
 
 
 
 
-} 
+}
 
 
 
