@@ -82,14 +82,14 @@ void loop() {
   tft.setTextSize(2);
   tft.drawString("Hello world", 10, 10); */
   
-  delay(1000); 
+  delay(1000);  
 
   // U.S 2.1 - As a user, I want a menu to navigate between different screens using the two buttons,
   // like forecast and settings screen.
 
   static int currentPage = 0;
   static int lastPage = -1;
-
+    
   if (digitalRead(PIN_BUTTON_1) == LOW) {
     currentPage = 0;
   }
