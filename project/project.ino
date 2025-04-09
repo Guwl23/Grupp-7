@@ -13,8 +13,8 @@
 
 
 // Remember to remove these before commiting in GitHub
-String ssid = "";
-String password = "";
+String ssid = "BTH_Guest";
+String password = "Pingvin89Opel";
 
 // "tft" is the graphics libary, which has functions to draw on the screen
 TFT_eSPI tft = TFT_eSPI();
@@ -276,9 +276,9 @@ void loop() {
     tft.setTextSize(2);
 
     if (currentPage == 0) {
-      tft.drawString("Forecast", 40,20 );
+      tft.drawString("Forecast", 10,10 );
     }   else if (currentPage == 1) {
-      tft.drawString("Settings", 280, 20);
+      tft.drawString("Settings", 230, 10);
     }
 
     lastPage = currentPage;
