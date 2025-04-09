@@ -43,15 +43,20 @@ void bootScreen() {
 //skriver functioner här och hoppas 
 struct City {
   String name;
-  float lat;
-  float lon; //Har en tanke på att detta måste ändras till en int key för annan url
+  //float lat;
+  //float lon; Har en tanke på att detta måste ändras till en int key för annan url
+  int key;
 };
 
 const City cities[] = {
-  {"Stockholm", 59.3293, 18.0686}, //byta ut lat, lon mot key
-  {"Malmo", 55.6050, 13.0038},
-  {"Goteborg", 57.7089, 11.9746},
-  {"Karlskrona", 56.1833, 15.6500}
+  //{"Stockholm", 59.3293, 18.0686}, //byta ut lat, lon mot key
+  //{"Malmo", 55.6050, 13.0038},
+  //{"Goteborg", 57.7089, 11.9746},
+  //{"Karlskrona", 56.1833, 15.6500}
+  {"Stockholm", 97400}, //byta ut lat, lon mot key
+  {"Malmo", 53360},
+  {"Goteborg", 72630},
+  {"Karlskrona", 65090}
 };
 
 City selectedCity;
@@ -121,13 +126,15 @@ void drawTempGraph(float temps[24]) {
 }
 
 void displayNext24H(City city){
-  String url = "https://opendata-download.metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/longitude/" 
-    + String(city.lon, 4) + "/lat/" + String(city.lat, 4) + "/data.json/" 
-    /*här över då istället 
-    https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/17121000.json
-    // med "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/" + String(city.key)
-    // + ".json"*/
+  String url = "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/" + String(city.key)
+     + ".json";
+    // https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/17121000.json
   
+    /*"https://opendata-download.metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/longitude/"
+    + String(city.lon, 4) + "/lat/" + String(city.lat, 4) + "/data.json/" ;*/
+    //här över då istället
+
+
   HTTPClient client;
   client.begin(url);
   int httpCode = client.GET();
