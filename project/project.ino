@@ -13,8 +13,8 @@
 
 
 // Remember to remove these before commiting in GitHub
-String ssid = "BTH_Guest";
-String password = "Pingvin89Opel";
+String ssid = "";
+String password = "";
 
 // "tft" is the graphics libary, which has functions to draw on the screen
 TFT_eSPI tft = TFT_eSPI();
@@ -54,12 +54,14 @@ const City cities[] = {
   //{"Goteborg", 57.7089, 11.9746},
   //{"Karlskrona", 56.1833, 15.6500}
   {"Stockholm", 97400}, //byta ut lat, lon mot key
-  {"Malmo", 53360},
-  {"Goteborg", 72630},
+  {"Malmö", 53360},
+  {"Göteborg", 72630},
   {"Karlskrona", 65090}
 };
 
 City selectedCity;
+
+void displayNext24H(City city);
 
 void chooseCity() {
   int currentIndex = 0;
@@ -229,7 +231,7 @@ void setup() {
 
   chooseCity();
   displayNext24H(selectedCity);
-
+  delay(10000);
 
   //för att veta om vi får tillgång till APIn?
 /**Vad jag tror så måste vi ta en liknande fil denna
