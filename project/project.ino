@@ -280,7 +280,7 @@ void loop() {
     if (currentPage == 0) {
       tft.drawString("Forecast", 10,10 );
     }   else if (currentPage == 1) {
-      tft.drawString("Settings", 230, 10);
+      tft.drawString("Settings", 225, 10);
     }
 
     lastPage = currentPage;
