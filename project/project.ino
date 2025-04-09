@@ -78,13 +78,13 @@ void chooseCity() {
 
     if (digitalRead(PIN_BUTTON_1) == LOW) {
       currentIndex = (currentIndex + 1) % 4;
-      delay(500);
+      delay(1000);
     }
 
     if (digitalRead(PIN_BUTTON_2) == LOW) {
       selectedCity = cities[currentIndex];
       chosen = true;
-      delay(500);
+      delay(1000);
     }
 
     //Bekräftar på displayen
