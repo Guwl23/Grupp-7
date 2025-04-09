@@ -40,7 +40,7 @@ void bootScreen() {
 }
 
 
-//skriver functioner här och hoppas 
+//skriver functioner här och hoppas
 struct City {
   String name;
   float lat;
@@ -92,7 +92,7 @@ void drawTempGraph(float temps[24]) {
   tft.setTextColor(TFT_WHITE);
   tft.drawString("Temperatur kommande 24 timmar", 10, 0);
 
-  //Y-axeln mellan 0 och 30 grader 
+  //Y-axeln mellan 0 och 30 grader
   int graphHeight = 100;
   int graphWidth = 240;
   int baseY = 130;
@@ -105,7 +105,7 @@ void drawTempGraph(float temps[24]) {
   for (int i = 0; i < 24; i++) {
     int x = baseX + (i * (graphWidth / 24));
     int y = baseY - map(temps[i], -10, 30, 0, graphHeight); //tempskala från -10 till 30 grader
-  
+
 
     if (i > 0) {
       int prevX = baseX + ((i - 1) * (graphWidth / 24));
@@ -153,7 +153,7 @@ void displayNext24H(City city){
 
   int line = 20;
   for (int i = 0; i < 24; i++) {
-    String time = timeSeries[i]["validTime"];         
+    String time = timeSeries[i]["validTime"];
     JsonArray params = timeSeries[i]["parameters"];
 
     float temp = NAN;
@@ -216,22 +216,22 @@ void setup() {
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
   tft.drawString("Connected to WiFi", 10, 10);
   Serial.println("Connected to WiFi");
-  // Add your code bellow 
+  // Add your code bellow
 
   bootScreen();
 
   chooseCity();
   displayNext24H(selectedCity);
-  
+
 
   //för att veta om vi får tillgång till APIn?
-/**Vad jag tror så måste vi ta en liknande fil denna 
-(https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all.json) 
+/**Vad jag tror så måste vi ta en liknande fil denna
+(https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all.json)
 där vi sedan byter ut all(.json) och utifrån vilken stad man vill se så ändras keyn eller vad det nu är
-för en liknande är den här 
-(https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/17121000.json) där 
+för en liknande är den här
+(https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/17121000.json) där
 keyn är 17121000 däremot så tycks jag läsa att det bara är resultat från senaste timmen*/
-  
+
   //måste hänvisa till SMHI för överstående också
 
 }
@@ -245,15 +245,15 @@ void loop() {
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
   tft.drawString("Hello world", 10, 10); */
-  
-  delay(1000);  
+
+  delay(1000);
 
   // U.S 2.1 - As a user, I want a menu to navigate between different screens using the two buttons,
   // like forecast and settings screen.
 
   static int currentPage = 0;
   static int lastPage = -1;
-    
+
   if (digitalRead(PIN_BUTTON_1) == LOW) {
     currentPage = 0;
   }
