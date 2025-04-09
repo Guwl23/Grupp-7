@@ -78,18 +78,19 @@ void chooseCity() {
 
     if (digitalRead(PIN_BUTTON_1) == LOW) {
       currentIndex = (currentIndex + 1) % 4;
-      delay(300);
+      delay(500);
     }
 
     if (digitalRead(PIN_BUTTON_2) == LOW) {
       selectedCity = cities[currentIndex];
       chosen = true;
-      delay(300);
+      delay(500);
     }
 
     //Bekräftar på displayen
     tft.fillScreen(TFT_BLACK);
-    tft.drawString("Choosen city: " + selectedCity.name, 60, 60);
+    tft.drawString("Choose city: " + selectedCity.name, 60, 60);
+    //vill vi lägga till en lista över alla städer?
     delay(1000);
   }
 }
@@ -97,13 +98,14 @@ void chooseCity() {
 void drawTempGraph(float temps[24]) {
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE);
+  tft.setTextSize(1);
   tft.drawString("Temperatur kommande 24 timmar", 10, 0);
 
   //Y-axeln mellan 0 och 30 grader
   int graphHeight = 100;
-  int graphWidth = 240;
+  int graphWidth = 220;
   int baseY = 130;
-  int baseX = 10;
+  int baseX = 20;
 
   //Ritar diagram axlarna
   tft.drawLine(baseX, baseY - graphHeight, baseX, baseY, TFT_WHITE); //Y-axeln
@@ -122,6 +124,7 @@ void drawTempGraph(float temps[24]) {
 
     //Visar var 3:e timme
     if (i % 3 == 0) {
+      tft.setTextSize(0.5);
       tft.drawString(String(i) + "h", x - 5, baseY + 5);
     }
   }
@@ -278,7 +281,7 @@ void loop() {
     tft.setTextSize(2);
 
     if (currentPage == 0) {
-      tft.drawString("Forecast", 10,10 );
+      tft.drawString("Forecast", 7,10 );
     }   else if (currentPage == 1) {
       tft.drawString("Settings", 225, 10);
     }
