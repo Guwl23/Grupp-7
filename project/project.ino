@@ -44,7 +44,6 @@ void bootScreen() {
 struct City {
   String name;
   //float lat;
-  //float lon; Har en tanke på att detta måste ändras till en int key för annan url
   int key;
 };
 
