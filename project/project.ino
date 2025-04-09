@@ -129,7 +129,7 @@ void displayNext24H(City city){
   String url = "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/" + String(city.key)
      + ".json";
     // https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/17121000.json
-  
+
     /*"https://opendata-download.metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/longitude/"
     + String(city.lon, 4) + "/lat/" + String(city.lat, 4) + "/data.json/" ;*/
     //här över då istället
@@ -174,7 +174,7 @@ void displayNext24H(City city){
     if (!isnan(temp)) {
       temps[i] = temp;
 
-      String hour = time.substring(11, 16); 
+      String hour = time.substring(11, 16);
       tft.setCursor(0, line);
       tft.print(hour + "  ");
       tft.println(String(temp, 1) + " °C");
