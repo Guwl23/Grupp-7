@@ -118,6 +118,7 @@ void drawTempGraph(float temps[24]) {
     tft.setCursor(0, y - 6);
     tft.setTextSize(1);
     tft.print(String(t) + "°");
+  }
 
   for (int i = 0; i < 24; i++) {
     int x = baseX + (i * (graphWidth / 24));
@@ -131,7 +132,7 @@ void drawTempGraph(float temps[24]) {
     }
 
     //Visar var 3:e timme
-    if (i + 1 % 3 == 0) {
+    if (i % 3 == 0) {
       tft.setTextSize(1);
       tft.drawString(String(i) + "h", x - 5, baseY + 5);
     }
