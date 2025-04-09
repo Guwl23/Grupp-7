@@ -43,6 +43,7 @@ void bootScreen() {
 //skriver functioner här och hoppas
 struct City {
   String name;
+  //float lon;
   //float lat;
   int key;
 };
@@ -125,14 +126,6 @@ void drawTempGraph(float temps[24]) {
 }
 
 void displayNext24H(City city){
-<<<<<<< HEAD
-  String url = "https://opendata-download.metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/longitude/" 
-    + String(city.lon, 4) + "/lat/" + String(city.lat, 4) + "/data.json/";
-    /*här över då istället
-    https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/17121000.json
-    // med "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/" + String(city.key)
-    // + ".json"*/
-=======
   String url = "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/" + String(city.key)
      + ".json";
     // https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/17121000.json
@@ -141,7 +134,6 @@ void displayNext24H(City city){
     + String(city.lon, 4) + "/lat/" + String(city.lat, 4) + "/data.json/" ;*/
     //här över då istället
 
->>>>>>> a8776e57cc3dfeeedde68c3e0e13f2caa804b373
 
   HTTPClient client;
   client.begin(url);
