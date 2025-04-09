@@ -111,6 +111,14 @@ void drawTempGraph(float temps[24]) {
   tft.drawLine(baseX, baseY - graphHeight, baseX, baseY, TFT_WHITE); //Y-axeln
   tft.drawLine(baseX, baseY, baseX + graphWidth, baseY, TFT_WHITE); //X-axeln
 
+  //Ritar temperaturen längs y axeln
+  for (int t = -10; t <= 30; t += 10) {
+    int y = baseY - map(t, -10, 30, 0, graphHeight);
+    tft.drawLine(baseX - 5, y, baseX, y, TFT_WHITE);
+    tft.setCursor(0, y - 6);
+    tft.setTextSize(1);
+    tft.print(String(t) + "°");
+
   for (int i = 0; i < 24; i++) {
     int x = baseX + (i * (graphWidth / 24));
     int y = baseY - map(temps[i], -10, 30, 0, graphHeight); //tempskala från -10 till 30 grader
@@ -124,7 +132,7 @@ void drawTempGraph(float temps[24]) {
 
     //Visar var 3:e timme
     if (i + 1 % 3 == 0) {
-      tft.setTextSize(0.5);
+      tft.setTextSize(1);
       tft.drawString(String(i) + "h", x - 5, baseY + 5);
     }
   }
@@ -281,7 +289,7 @@ void loop() {
     tft.setTextSize(2);
 
     if (currentPage == 0) {
-      tft.drawString("Forecast", 7,10 );
+      tft.drawString("Forecast", 2,10 );
     }   else if (currentPage == 1) {
       tft.drawString("Settings", 225, 10);
     }
