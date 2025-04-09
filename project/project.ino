@@ -54,8 +54,8 @@ const City cities[] = {
   //{"Goteborg", 57.7089, 11.9746},
   //{"Karlskrona", 56.1833, 15.6500}
   {"Stockholm", 97400}, //byta ut lat, lon mot key
-  {"Malmö", 53360},
-  {"Göteborg", 72630},
+  {"Malmo", 53360},
+  {"Gothenburg", 72630},
   {"Karlskrona", 65090}
 };
 
@@ -117,7 +117,7 @@ void drawTempGraph(float temps[24]) {
     tft.drawLine(baseX - 5, y, baseX, y, TFT_WHITE);
     tft.setCursor(0, y - 6);
     tft.setTextSize(1);
-    tft.print(String(t) + "°");
+    tft.print(String(t));
   }
 
   for (int i = 0; i < 24; i++) {
