@@ -56,9 +56,9 @@ const City cities[] = {
 
 City selectedCity;
 
-float temps[24];
-
 void displayNext24H(City city);
+
+float temps[24];
 
 void chooseCity() {
   int currentIndex = 0;
@@ -97,6 +97,8 @@ void drawTempGraph(float temps[24]) {
   tft.setTextColor(TFT_WHITE);
   tft.setTextSize(1);
   tft.drawString("Temperatur kommande 24 timmar", 10, 0);
+  tft.drawString("Forecast", 225, 10);
+  tft.drawString("Settings", 225,120);  //Lagt till detta för att visa settings och forecast bredvid diagrammet
 
   //Y-axeln mellan 0 och 30 grader
   int graphHeight = 100;
@@ -159,8 +161,6 @@ void displayNext24H(City city){
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.drawString("Forecast", 5, 5);
-  tft.drawString("Settings", 230, 5);  //Lagt till detta för att visa settings och forecast bredvid diagrammet
   tft.setCursor(0, 25); //Ändrade till 25 för att fllytta ner diagrammet lite så att den inte krockar med "Forecast"
   tft.setTextSize(2);
   tft.println("24h prognos i " + city.name);
@@ -311,8 +311,9 @@ void loop() {
     tft.setTextSize(2);
 
     if (currentPage == 0) {
-      tft.drawString("Forecast", 20,10 );
-      drawTempGraph(temps);  // Anropar den redan definierade funktionen för att rita diagrammet
+      tft.drawString("Forecast", 225,20 );
+      drawTempGraph(temps);
+      displayNext24H(selectedCity);  // Anropar den redan definierade funktionen för att rita diagrammet
       tft.drawString("Menu", 20, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
       }
 
