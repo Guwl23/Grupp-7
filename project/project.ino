@@ -296,14 +296,14 @@ void loop() {
     tft.setTextSize(2);
 
     if (currentPage == 0) {
-      tft.drawString("Forecast", 2,10 );
+      tft.drawString("Forecast", 20,10 );
       drawTempGraph(temps);  // Anropar den redan definierade funktionen för att rita diagrammet
       tft.drawString("Menu", 20, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
       }
 
        else if (currentPage == 1) {
-      tft.drawString("Settings", 225, 10);
-      tft.drawString("Menu", 20, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
+      tft.drawString("Settings", 20, 10);
+      tft.drawString("Menu", 225, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
     }
 
     lastPage = currentPage;
