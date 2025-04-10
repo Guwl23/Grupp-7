@@ -40,21 +40,28 @@ void bootScreen() {
 }
 
 
-//skriver functioner här och hoppas 
+//skriver functioner här och hoppas
 struct City {
   String name;
-  float lat;
-  float lon; //Har en tanke på att detta måste ändras till en int key för annan url
+  //float lon;
+  //float lat;
+  int key;
 };
 
 const City cities[] = {
-  {"Stockholm", 59.3293, 18.0686}, //byta ut lat, lon mot key
-  {"Malmo", 55.6050, 13.0038},
-  {"Goteborg", 57.7089, 11.9746},
-  {"Karlskrona", 56.1833, 15.6500}
+  //{"Stockholm", 59.3293, 18.0686}, //byta ut lat, lon mot key
+  //{"Malmo", 55.6050, 13.0038},
+  //{"Goteborg", 57.7089, 11.9746},
+  //{"Karlskrona", 56.1833, 15.6500}
+  {"Stockholm", 97400}, //byta ut lat, lon mot key
+  {"Malmo", 53360},
+  {"Gothenburg", 72630},
+  {"Karlskrona", 65090}
 };
 
 City selectedCity;
+
+void displayNext24H(City city);
 
 void chooseCity() {
   int currentIndex = 0;
@@ -71,18 +78,19 @@ void chooseCity() {
 
     if (digitalRead(PIN_BUTTON_1) == LOW) {
       currentIndex = (currentIndex + 1) % 4;
-      delay(300);
+      delay(1000);
     }
 
     if (digitalRead(PIN_BUTTON_2) == LOW) {
       selectedCity = cities[currentIndex];
       chosen = true;
-      delay(300);
+      delay(1000);
     }
 
     //Bekräftar på displayen
     tft.fillScreen(TFT_BLACK);
-    tft.drawString("Choosen city: " + selectedCity.name, 60, 60);
+    tft.drawString("Choose city: " + selectedCity.name, 60, 60);
+    //vill vi lägga till en lista över alla städer?
     delay(1000);
   }
 }
@@ -90,22 +98,32 @@ void chooseCity() {
 void drawTempGraph(float temps[24]) {
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE);
+  tft.setTextSize(1);
   tft.drawString("Temperatur kommande 24 timmar", 10, 0);
 
-  //Y-axeln mellan 0 och 30 grader 
+  //Y-axeln mellan 0 och 30 grader
   int graphHeight = 100;
-  int graphWidth = 240;
+  int graphWidth = 220;
   int baseY = 130;
-  int baseX = 10;
+  int baseX = 20;
 
   //Ritar diagram axlarna
   tft.drawLine(baseX, baseY - graphHeight, baseX, baseY, TFT_WHITE); //Y-axeln
   tft.drawLine(baseX, baseY, baseX + graphWidth, baseY, TFT_WHITE); //X-axeln
 
+  //Ritar temperaturen längs y axeln
+  for (int t = -10; t <= 30; t += 10) {
+    int y = baseY - map(t, -10, 30, 0, graphHeight);
+    tft.drawLine(baseX - 5, y, baseX, y, TFT_WHITE);
+    tft.setCursor(0, y - 6);
+    tft.setTextSize(1);
+    tft.print(String(t));
+  }
+
   for (int i = 0; i < 24; i++) {
     int x = baseX + (i * (graphWidth / 24));
     int y = baseY - map(temps[i], -10, 30, 0, graphHeight); //tempskala från -10 till 30 grader
-  
+
 
     if (i > 0) {
       int prevX = baseX + ((i - 1) * (graphWidth / 24));
@@ -115,19 +133,22 @@ void drawTempGraph(float temps[24]) {
 
     //Visar var 3:e timme
     if (i % 3 == 0) {
+      tft.setTextSize(1);
       tft.drawString(String(i) + "h", x - 5, baseY + 5);
     }
   }
 }
 
 void displayNext24H(City city){
-  String url = "https://opendata-download.metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/longitude/" 
-    + String(city.lon, 4) + "/lat/" + String(city.lat, 4) + "/data.json/" 
-    /*här över då istället 
-    https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/17121000.json
-    // med "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/" + String(city.key)
-    // + ".json"*/
-  
+  String url = "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/" + String(city.key)
+     + ".json";
+    // https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/17121000.json
+
+    /*"https://opendata-download.metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/longitude/"
+    + String(city.lon, 4) + "/lat/" + String(city.lat, 4) + "/data.json/" ;*/
+    //här över då istället
+
+
   HTTPClient client;
   client.begin(url);
   int httpCode = client.GET();
@@ -153,7 +174,7 @@ void displayNext24H(City city){
 
   int line = 20;
   for (int i = 0; i < 24; i++) {
-    String time = timeSeries[i]["validTime"];         
+    String time = timeSeries[i]["validTime"];
     JsonArray params = timeSeries[i]["parameters"];
 
     float temp = NAN;
@@ -167,7 +188,7 @@ void displayNext24H(City city){
     if (!isnan(temp)) {
       temps[i] = temp;
 
-      String hour = time.substring(11, 16); 
+      String hour = time.substring(11, 16);
       tft.setCursor(0, line);
       tft.print(hour + "  ");
       tft.println(String(temp, 1) + " °C");
@@ -216,22 +237,22 @@ void setup() {
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
   tft.drawString("Connected to WiFi", 10, 10);
   Serial.println("Connected to WiFi");
-  // Add your code bellow 
+  // Add your code bellow
 
   bootScreen();
 
   chooseCity();
   displayNext24H(selectedCity);
-  
+  delay(10000);
 
   //för att veta om vi får tillgång till APIn?
-/**Vad jag tror så måste vi ta en liknande fil denna 
-(https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all.json) 
+/**Vad jag tror så måste vi ta en liknande fil denna
+(https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all.json)
 där vi sedan byter ut all(.json) och utifrån vilken stad man vill se så ändras keyn eller vad det nu är
-för en liknande är den här 
-(https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/17121000.json) där 
+för en liknande är den här
+(https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/17121000.json) där
 keyn är 17121000 däremot så tycks jag läsa att det bara är resultat från senaste timmen*/
-  
+
   //måste hänvisa till SMHI för överstående också
 
 }
@@ -245,15 +266,15 @@ void loop() {
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
   tft.drawString("Hello world", 10, 10); */
-  
-  delay(1000);  
+
+  delay(1000);
 
   // U.S 2.1 - As a user, I want a menu to navigate between different screens using the two buttons,
   // like forecast and settings screen.
 
   static int currentPage = 0;
   static int lastPage = -1;
-    
+
   if (digitalRead(PIN_BUTTON_1) == LOW) {
     currentPage = 0;
   }
@@ -269,9 +290,9 @@ void loop() {
     tft.setTextSize(2);
 
     if (currentPage == 0) {
-      tft.drawString("Forecast", 40,20 );
+      tft.drawString("Forecast", 2,10 );
     }   else if (currentPage == 1) {
-      tft.drawString("Settings", 280, 20);
+      tft.drawString("Settings", 225, 10);
     }
 
     lastPage = currentPage;
