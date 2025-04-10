@@ -264,14 +264,6 @@ void setup() {
   displayNext24H(selectedCity);
   delay(10000);
 
-  //för att veta om vi får tillgång till APIn?
-/**Vad jag tror så måste vi ta en liknande fil denna
-(https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station-set/all.json)
-där vi sedan byter ut all(.json) och utifrån vilken stad man vill se så ändras keyn eller vad det nu är
-för en liknande är den här
-(https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/17121000.json) där
-keyn är 17121000 däremot så tycks jag läsa att det bara är resultat från senaste timmen*/
-
   //måste hänvisa till SMHI för överstående också
 
 }
@@ -281,11 +273,6 @@ keyn är 17121000 däremot så tycks jag läsa att det bara är resultat från s
  * Add your code here to perform tasks repeatedly.
  */
 void loop() {
-  /*tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.setTextSize(2);
-  tft.drawString("Hello world", 10, 10); */
-
   delay(1000);
 
   // U.S 2.1 - As a user, I want a menu to navigate between different screens using the two buttons,
