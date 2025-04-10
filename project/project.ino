@@ -43,20 +43,15 @@ void bootScreen() {
 //skriver functioner här och hoppas
 struct City {
   String name;
-  //float lon;
-  //float lat;
-  int key;
+  float lon;
+  float lat;
 };
 
 const City cities[] = {
-  //{"Stockholm", 59.3293, 18.0686}, //byta ut lat, lon mot key
-  //{"Malmo", 55.6050, 13.0038},
-  //{"Goteborg", 57.7089, 11.9746},
-  //{"Karlskrona", 56.1833, 15.6500}
-  {"Stockholm", 97400}, //byta ut lat, lon mot key
-  {"Malmo", 53360},
-  {"Gothenburg", 72630},
-  {"Karlskrona", 65090}
+  {"Stockholm", 59.3293, 18.0686},
+  {"Malmo", 55.6050, 13.0038},
+  {"Goteborg", 57.7089, 11.9746},
+  {"Karlskrona", 56.1833, 15.6500}
 };
 
 City selectedCity;
@@ -142,14 +137,8 @@ void drawTempGraph(float temps[24]) {
 }
 
 void displayNext24H(City city){
-  String url = "https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/" + String(city.key)
-     + ".json";
-    // https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/1/station/17121000.json
-
-    /*"https://opendata-download.metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/longitude/"
-    + String(city.lon, 4) + "/lat/" + String(city.lat, 4) + "/data.json/" ;*/
-    //här över då istället
-
+  String url = "https://opendata-download.metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/longitude/"
+    + String(city.lon, 4) + "/lat/" + String(city.lat, 4) + "/data.json/" ;
 
   HTTPClient client;
   client.begin(url);
@@ -176,14 +165,26 @@ void displayNext24H(City city){
   tft.setTextSize(2);
   tft.println("24h prognos i " + city.name);
 
-  float temps[24];
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    Serial.println("Kunde inte hämta tid!");
+    return;
+  }
 
+  char currentTimeStr[20];
+  strftime(currentTimeStr, sizeof(currentTimeStr), "%Y-%m-%dT%H:%M:%S", &timeinfo);
+  String nowISO = String(currentTimeStr); // detta matchar SMHI:s "validTime"-format
+
+  int count = 0;
   int line = 45; //Även här för att flytta ner Temperaturen lite.
-  for (int i = 0; i < 24; i++) {
-    String time = timeSeries[i]["validTime"];
-    JsonArray params = timeSeries[i]["parameters"];
+  for (JsonObject item : timeSeries) {
+    String time = item["validTime"];
+    if (time < nowISO) continue; // hoppa över gamla tider
+    if (count >= 24) break;
 
+    JsonArray params = item["parameters"];
     float temp = NAN;
+
     for (JsonObject p : params) {
       if (p["name"] == "t") {
         temp = p["values"][0];
@@ -192,13 +193,14 @@ void displayNext24H(City city){
     }
 
     if (!isnan(temp)) {
-      temps[i] = temp;
+      temps[count] = temp;
 
       String hour = time.substring(11, 16);
       tft.setCursor(0, line);
       tft.print(hour + "  ");
       tft.println(String(temp, 1) + " °C");
       line += 10;
+      count++;
     }
   }
 
@@ -244,6 +246,17 @@ void setup() {
   tft.drawString("Connected to WiFi", 10, 10);
   Serial.println("Connected to WiFi");
   // Add your code bellow
+
+  // Använder nu svensk sommartid genom en funktion i time.h
+  configTzTime("CET-1CEST,M3.5.0/02,M10.5.0/03", "pool.ntp.org");
+
+  // Gör en kontroll att tid har hämtats rätt
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    Serial.println("Kunde inte hämta tid!");
+  } else {
+    Serial.println(&timeinfo, "Tid: %A, %B %d %Y %H:%M:%S");
+  }
 
   bootScreen();
 
