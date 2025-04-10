@@ -61,6 +61,8 @@ const City cities[] = {
 
 City selectedCity;
 
+float temps[24];
+
 void displayNext24H(City city);
 
 void chooseCity() {
@@ -317,7 +319,7 @@ void loop() {
     currentPage = -1;  // Gå tillbaka till menyn
     delay(200);  // Förhindra snabb växling (debounce)
   }
-
+}
 
 
 
