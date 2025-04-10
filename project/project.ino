@@ -89,7 +89,7 @@ void chooseCity() {
 
     //Bekräftar på displayen
     tft.fillScreen(TFT_BLACK);
-    tft.drawString("Choose city: " + selectedCity.name, 60, 60);
+    tft.drawString("Choose city: " + selectedCity.name, 30, 60);
     //vill vi lägga till en lista över alla städer?
     delay(1000);
   }
