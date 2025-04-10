@@ -166,13 +166,17 @@ void displayNext24H(City city){
   JsonArray timeSeries = doc["timeSeries"];
 
   tft.fillScreen(TFT_BLACK);
-  tft.setCursor(0, 0);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextSize(2);
+  tft.drawString("Forecast", 5, 5);
+  tft.drawString("Settings", 230, 5);  //Lagt till detta för att visa settings och forecast bredvid diagrammet
+  tft.setCursor(0, 25); //Ändrade till 25 för att fllytta ner diagrammet lite så att den inte krockar med "Forecast"
   tft.setTextSize(2);
   tft.println("24h prognos i " + city.name);
 
   float temps[24];
 
-  int line = 20;
+  int line = 45; //Även här för att flytta ner Temperaturen lite.
   for (int i = 0; i < 24; i++) {
     String time = timeSeries[i]["validTime"];
     JsonArray params = timeSeries[i]["parameters"];
@@ -277,10 +281,12 @@ void loop() {
 
   if (digitalRead(PIN_BUTTON_1) == LOW) {
     currentPage = 0;
+    delay(200);  // Förhindra snabb växling (debounce)
   }
 
   if (digitalRead(PIN_BUTTON_2) == LOW) {
     currentPage = 1;
+    delay(200);  // Förhindra snabb växling (debounce)
   }
 
 
@@ -291,18 +297,32 @@ void loop() {
 
     if (currentPage == 0) {
       tft.drawString("Forecast", 2,10 );
+      drawTempGraph(temps);  // Anropar den redan definierade funktionen för att rita diagrammet
+      tft.drawString("Menu", 20, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
+      }
+
     }   else if (currentPage == 1) {
       tft.drawString("Settings", 225, 10);
-    }
+      tft.drawString("Menu", 20, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
+  }
+
 
     lastPage = currentPage;
-    delay(400);
+    delay(400); //Förhindrar snabb växling
+  }
+
+
+  // Kolla om meny-knappen är tryckt för att gå tillbaka till startsidan
+  if (digitalRead(PIN_BUTTON_1) == LOW && currentPage == 0) {
+    currentPage = -1;  // Gå tillbaka till menyn
+    delay(200);  // Förhindra snabb växling (debounce)
   }
 
 
 
 
-}
+
+
 
 
 
