@@ -261,8 +261,8 @@ void setup() {
   bootScreen();
 
   chooseCity();
-  displayNext24H(selectedCity);
-  delay(10000);
+  //displayNext24H(selectedCity);
+  //delay(10000);
 
   //måste hänvisa till SMHI för överstående också
 
@@ -278,16 +278,21 @@ void loop() {
   // U.S 2.1 - As a user, I want a menu to navigate between different screens using the two buttons,
   // like forecast and settings screen.
 
-  static int currentPage = 0;
-  static int lastPage = -1;
+  static int currentPage = -1;
+  static int lastPage = -2;
+
+  /*Lägger till en extra sida så att vi har en startsida som man alltid kan gå tillbaka till
+  genom meny knappen och sen en av settings och en av forecast*/
 
   if (digitalRead(PIN_BUTTON_1) == LOW) {
-    currentPage = 0;
+    if (currentPage == -1) currentPage = 0; //Går till Forcast
+    else if (currentPage == 0) currentPage = -1; //Går tillbaka till startsidan
     delay(200);  // Förhindra snabb växling (debounce)
   }
 
   if (digitalRead(PIN_BUTTON_2) == LOW) {
-    currentPage = 1;
+    if (currentPage == -1) currentPage = 1; //Gå till Settings
+    else if (currentPage == 1) currentPage = -1; //Går tillbaka till startsidan
     delay(200);  // Förhindra snabb växling (debounce)
   }
 
@@ -297,14 +302,19 @@ void loop() {
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextSize(2);
 
-    if (currentPage == 0) {
-      tft.drawString("Forecast", 225,20 );
-      drawTempGraph(temps);
-      displayNext24H(selectedCity);  // Anropar den redan definierade funktionen för att rita diagrammet
-      tft.drawString("Menu", 20, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
+    if (currentPage == -1) {
+      displayNext24H(selectedCity);  //Ritar grafen för 24 kommande timmar på startsidan
+      tft.drawString("Forecast", 225, 10); //Knappen för forecast
+      tft.drawString("Settings", 225, 140); //Knappen för settings
+    }
+
+    else if (currentPage == 0) {
+      tft.drawString("Forecast", 10, 10);
+      drawTempGraph(temps); //Visar förhoppningsvis rätt graf
+      tft.drawString("Menu", 10, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
       }
 
-       else if (currentPage == 1) {
+    else if (currentPage == 1) {
       tft.drawString("Settings", 20, 10);
       tft.drawString("Menu", 225, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
     }
