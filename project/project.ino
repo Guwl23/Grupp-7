@@ -153,7 +153,7 @@ void displayNext24H(City city){
   }
 
   String json = client.getString();
-  DynamicJsonDocument doc(45000);
+  JsonDocument doc;
   deserializeJson(doc, json);
 
   JsonArray timeSeries = doc["timeSeries"];
