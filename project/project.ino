@@ -209,6 +209,25 @@ void displayNext24H(City city){
   client.end();
 }
 
+void SettingsLayout() {
+
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextSize(1);
+
+  int startY = 90;
+  int spacing = 12;
+
+  tft.drawString("Weather Parameters:", 60, startY);
+  tft.drawString("Temperature", 60, startY + spacing * 1);
+  tft.drawString("Humidity", 60, startY + spacing * 2);
+  tft.drawString("Wind Speed", 60, startY + spacing * 3);
+  tft.drawString("Choose City", 60, startY + spacing * 4); // till chooseCity() ?
+  tft.drawString("Apply Defaults", 60, startY + spacing * 5);
+  tft.drawString("Configure Defaults", 60, startY + spacing * 6);
+
+}
+
+
 
 /**
  * Setup function
@@ -317,6 +336,7 @@ void loop() {
     else if (currentPage == 1) {
       tft.drawString("Settings", 20, 10);
       tft.drawString("Menu", 225, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
+      SettingsLayout();
     }
 
     lastPage = currentPage;
