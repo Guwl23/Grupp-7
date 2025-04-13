@@ -48,10 +48,10 @@ struct City {
 };
 
 const City cities[] = {
-  {"Stockholm", 59.3293, 18.0686},
-  {"Malmo", 55.6050, 13.0038},
-  {"Goteborg", 57.7089, 11.9746},
-  {"Karlskrona", 56.1833, 15.6500}
+  {"Stockholm", 18.0686, 59.3293},
+  {"Malmo", 13.0038, 55.6050},
+  {"Goteborg", 11.9746, 57.7089},
+  {"Karlskrona", 15.6500, 56.1833}
 };
 
 City selectedCity;
