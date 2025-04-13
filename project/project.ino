@@ -139,7 +139,7 @@ void drawTempGraph(float temps[24]) {
 }
 
 void displayNext24H(City city){
-  String url = "https://opendata-download.metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/"
+  String url = "https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/"
     + String(city.lon, 0) + "/lat/" + String(city.lat, 0) + "/data.json" ;
     //ändrade antalet decimaler från 4 till 0 i string såg ut som att den avrundade talen till heltal
 
