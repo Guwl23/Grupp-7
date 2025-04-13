@@ -13,8 +13,8 @@
 
 
 // Remember to remove these before commiting in GitHub
-String ssid = "BTH_Guest";
-String password = "Pingvin89Opel";
+String ssid = "";
+String password = "";
 
 // "tft" is the graphics libary, which has functions to draw on the screen
 TFT_eSPI tft = TFT_eSPI();
@@ -48,10 +48,10 @@ struct City {
 };
 
 const City cities[] = {
-  {"Stockholm", 18.0686, 59.3293},
-  {"Malmo", 13.0038, 55.6050},
-  {"Goteborg", 11.9746, 57.7089},
-  {"Karlskrona", 15.6500, 56.1833}
+  {"Stockholm", 59.3293, 18.0686},
+  {"Malmo", 55.6050, 13.0038},
+  {"Goteborg", 57.7089, 11.9746},
+  {"Karlskrona", 56.1833, 15.6500}
 };
 
 City selectedCity;
