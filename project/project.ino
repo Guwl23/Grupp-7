@@ -13,8 +13,8 @@
 
 
 // Remember to remove these before commiting in GitHub
-String ssid = "iPhone";
-String password = "12345679";
+String ssid = "BTH_Guest";
+String password = "Pingvin89Opel";
 
 // "tft" is the graphics libary, which has functions to draw on the screen
 TFT_eSPI tft = TFT_eSPI();
