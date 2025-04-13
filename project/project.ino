@@ -214,7 +214,7 @@ void SettingsLayout() {
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(1);
 
-  int startY = 90;
+  int startY = 70;
   int spacing = 12;
 
   tft.drawString("Weather Parameters:", 60, startY);
