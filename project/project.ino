@@ -329,7 +329,7 @@ void loop() {
 
     else if (currentPage == 0) {
       tft.drawString("Forecast", 10, 10);
-      drawTempGraph(temps); //Visar förhoppningsvis rätt graf
+      displayNext24H(selectedCity); ////Ritar grafen för 24 kommande timmar
       tft.drawString("Menu", 10, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
       }
 
