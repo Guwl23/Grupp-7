@@ -214,16 +214,16 @@ void SettingsLayout() {
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(1);
 
-  int startY = 70;
+  int startY = 50;
   int spacing = 12;
 
-  tft.drawString("Weather Parameters:", 60, startY);
-  tft.drawString("Temperature", 60, startY + spacing * 1);
-  tft.drawString("Humidity", 60, startY + spacing * 2);
-  tft.drawString("Wind Speed", 60, startY + spacing * 3);
-  tft.drawString("Choose City", 60, startY + spacing * 4); // till chooseCity() ?
-  tft.drawString("Apply Defaults", 60, startY + spacing * 5);
-  tft.drawString("Configure Defaults", 60, startY + spacing * 6);
+  tft.drawString("Weather Parameters:", 40, startY);
+  tft.drawString("Temperature", 40, startY + spacing * 1);
+  tft.drawString("Humidity", 40, startY + spacing * 2);
+  tft.drawString("Wind Speed", 40, startY + spacing * 3);
+  tft.drawString("Choose City", 40, startY + spacing * 4); // till chooseCity() ?
+  tft.drawString("Apply Defaults", 40, startY + spacing * 5);
+  tft.drawString("Configure Defaults", 40, startY + spacing * 6);
 
 }
 
