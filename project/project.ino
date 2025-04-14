@@ -334,10 +334,10 @@ void loop() {
 
 
   // Kolla om meny-knappen är tryckt för att gå tillbaka till startsidan
-  if (digitalRead(PIN_BUTTON_1) == LOW && currentPage == 0) {
+  /*if (digitalRead(PIN_BUTTON_1) == LOW && currentPage == 0) {
     currentPage = -1;  // Gå tillbaka till menyn
     delay(200);  // Förhindra snabb växling (debounce)
-  }
+  }*/
 }
 
 
