@@ -164,7 +164,7 @@ void displayNext24H(City city){
   tft.setTextSize(2);
   tft.println("24h prognos i " + city.name);
 
-  /*struct tm timeinfo;
+  struct tm timeinfo;
   if (!getLocalTime(&timeinfo)) {
     Serial.println("Kunde inte hämta tid!");
     return;
@@ -172,7 +172,7 @@ void displayNext24H(City city){
 
   char currentTimeStr[20];
   strftime(currentTimeStr, sizeof(currentTimeStr), "%Y-%m-%dT%H:%M:%S", &timeinfo);
-  String nowISO = String(currentTimeStr); // detta matchar SMHI:s "validTime"-format*/
+  String nowISO = String(currentTimeStr); // detta matchar SMHI:s "validTime"-format
 
   int count = 0;
   int line = 45; //Även här för att flytta ner Temperaturen lite.
