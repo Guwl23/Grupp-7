@@ -305,11 +305,15 @@ void loop() {
 
   if (digitalRead(PIN_BUTTON_2) == LOW) {
     if (currentPage == -1) currentPage = 0; //Går till Forcast
-  }
-  if(digitalRead(PIN_BUTTON_1) == LOW && currentPage == 0) {
-    currentPage = -1;
+    else if (currentPage == 0) currentPage = -1; //Går tillbaka till startsidan
     delay(200);  // Förhindra snabb växling (debounce)
+
   }
+
+  // if(digitalRead(PIN_BUTTON_1) == LOW) {
+  //  if (currentPage == 0) currentPage = -1;
+  // delay(200);  // Förhindra snabb växling (debounce)
+  //}
 
   if (digitalRead(PIN_BUTTON_1) == LOW) {
     if (currentPage == -1) currentPage = 1; //Gå till Settings
@@ -332,12 +336,13 @@ void loop() {
     else if (currentPage == 0) {
       tft.drawString("Forecast", 10, 10);
       displayNext24H(selectedCity); ////Ritar grafen för 24 kommande timmar
-      tft.drawString("Menu", 225, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
+      tft.drawString("Menu", 290, 10);  // Meny-knapp för att gå tillbaka till huvudmenyn
       }
 
     else if (currentPage == 1) {
       tft.drawString("Settings", 20, 10);
-      tft.drawString("Menu", 225, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
+      tft.setTextSize(float(1.5));
+      tft.drawString("Menu", 290, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
       SettingsLayout();
     }
 
