@@ -79,7 +79,7 @@ void chooseCity() {
     }
 
     if (digitalRead(PIN_BUTTON_2) == LOW) {
-      selectedCity = cities[currentIndex - 1]; //ändrade till -1 här om det inte fungerar bara ta bort igen
+      selectedCity = cities[currentIndex]; //ändrade till -1 här om det inte fungerar bara ta bort igen
       chosen = true;
       delay(1000);
     }
@@ -264,6 +264,18 @@ void setup() {
   tft.drawString("Connected to WiFi", 10, 10);
   Serial.println("Connected to WiFi");
   // Add your code bellow
+
+   // Använder nu svensk sommartid genom en funktion i time.h
+  configTzTime("CET-1CEST,M3.5.0/02,M10.5.0/03", "pool.ntp.org");
+
+
+  // Gör en kontroll att tid har hämtats rätt
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    Serial.println("Kunde inte hämta tid!");
+  } else {
+    Serial.println(&timeinfo, "Tid: %A, %B %d %Y %H:%M:%S");
+  }
 
   bootScreen();
 
