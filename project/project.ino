@@ -79,7 +79,7 @@ void chooseCity() {
     }
 
     if (digitalRead(PIN_BUTTON_2) == LOW) {
-      selectedCity = cities[currentIndex];
+      selectedCity = cities[currentIndex - 1]; //ändrade till -1 här om det inte fungerar bara ta bort igen
       chosen = true;
       delay(1000);
     }
@@ -197,7 +197,7 @@ void displayNext24H(City city){
       String hour = time.substring(11, 16);
       tft.setCursor(0, line);
       tft.print(hour + "  ");
-      tft.println(String(temp, 1) + " °C");
+      tft.println(String(temp, 1));
       line += 10;
       count++;
     }
