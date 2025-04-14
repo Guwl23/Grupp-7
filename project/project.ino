@@ -208,7 +208,9 @@ void displayNext24H(City city){
   client.end();
 }
 
-void SettingsLayout() {
+void SettingsLayout(int selectedOption) {
+
+  tft.fillRect(0, 50, 240, 100, TFT_BLACK); // Rensa settings-listan
 
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(1);
@@ -216,6 +218,7 @@ void SettingsLayout() {
   int startY = 50;
   int spacing = 12;
 
+  /*
   tft.drawString("Weather Parameters:", 40, startY);
   tft.drawString("Temperature", 40, startY + spacing * 1);
   tft.drawString("Humidity", 40, startY + spacing * 2);
@@ -223,6 +226,21 @@ void SettingsLayout() {
   tft.drawString("Choose City", 40, startY + spacing * 4); // till chooseCity() ?
   tft.drawString("Apply Defaults", 40, startY + spacing * 5);
   tft.drawString("Configure Defaults", 40, startY + spacing * 6);
+  */
+
+  String options[] = {"Temperature", "Humidity", "Wind Speed", "Choose City", "Apply Defaults", "Configure Defaults"};
+
+  for (int i = 0; i < 6; i++) {
+    tft.setCursor(40, startY + spacing * (i + 1));
+    if (i == selectedOption) {
+      tft.setTextColor(TFT_YELLOW, TFT_BLACK);  // Highlighta den valda inställningen
+      tft.print("> ");  // Lägg till pil
+    } else {
+      tft.setTextColor(TFT_WHITE, TFT_BLACK);  // Färg för ovalda inställningar
+      tft.print("  ");
+    }
+    tft.println(options[i]);  // Printa varje inställning
+  }
 
 }
 
@@ -300,6 +318,8 @@ void loop() {
   static int currentPage = -1;
   static int lastPage = -2;
 
+  static int selectedOption = 0;
+
   /*Lägger till en extra sida så att vi har en startsida som man alltid kan gå tillbaka till
   genom meny knappen och sen en av settings och en av forecast*/
 
@@ -322,6 +342,24 @@ void loop() {
     delay(200);
   }
 
+  if (currentPage == 1) {
+
+    // Navigera nedåt längs Settings med nedersta knappen
+    if (digitalRead(PIN_BUTTON_2) == LOW) {
+      selectedOption = (selectedOption + 1) % 6;  // Gå tillbaka till översta inställningen om du trycker på knappen när du är vid nedersta inställningen
+      SettingsLayout(selectedOption);  // Rita om settings screen med de nya valen
+      delay(200);
+    }
+
+    // Välj alternativ med översta knappen
+    if (digitalRead(PIN_BUTTON_1) == LOW) {
+      // Här kan vi kalla på de nya funktionerna beroende på vilket alternativ som valts.
+      Serial.println("Selected Option: " + String(selectedOption));
+      delay(200);
+    }
+  }
+
+
   if (currentPage != lastPage) {
     tft.fillScreen(TFT_BLACK);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
@@ -343,14 +381,12 @@ void loop() {
       tft.drawString("Settings", 20, 10);
       tft.setTextSize(float(1.5));
       tft.drawString("Menu", 290, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
-      SettingsLayout();
+      SettingsLayout(selectedOption);
     }
 
     lastPage = currentPage;
     delay(400);
   }
-
-
 
 
 }
