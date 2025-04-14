@@ -305,22 +305,22 @@ void loop() {
 
   if (digitalRead(PIN_BUTTON_2) == LOW) {
     if (currentPage == -1) currentPage = 0; //Går till Forcast
-    else if (currentPage == 0) currentPage = -1; //Går tillbaka till startsidan
+    //else if (currentPage == 0) currentPage = -1; //Går tillbaka till startsidan
     delay(200);  // Förhindra snabb växling (debounce)
-
   }
 
-  // if(digitalRead(PIN_BUTTON_1) == LOW) {
-  //  if (currentPage == 0) currentPage = -1;
-  // delay(200);  // Förhindra snabb växling (debounce)
-  //}
 
   if (digitalRead(PIN_BUTTON_1) == LOW) {
     if (currentPage == -1) currentPage = 1; //Gå till Settings
-    else if (currentPage == 1) currentPage = -1; //Går tillbaka till startsidan
+    //else if (currentPage == 1) currentPage = -1; //Går tillbaka till startsidan
     delay(200);  // Förhindra snabb växling (debounce)
   }
 
+  if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
+    if (currentPage == 0) currentPage = -1;
+    else if (currentPage == 1) currentPage = -1;
+    delay(200);
+  }
 
   if (currentPage != lastPage) {
     tft.fillScreen(TFT_BLACK);
