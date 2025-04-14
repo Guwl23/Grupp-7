@@ -97,8 +97,6 @@ void drawTempGraph(float temps[24]) {
   tft.setTextColor(TFT_WHITE);
   tft.setTextSize(1);
   tft.drawString("Temperatur kommande 24 timmar", 10, 0);
-  tft.drawString("Forecast", 225, 10);
-  tft.drawString("Settings", 225,120);  //Lagt till detta för att visa settings och forecast bredvid diagrammet
 
   //Y-axeln mellan 0 och 30 grader
   int graphHeight = 100;
