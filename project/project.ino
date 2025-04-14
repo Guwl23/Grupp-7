@@ -197,7 +197,7 @@ void displayNext24H(City city){
       String hour = time.substring(11, 16);
       tft.setCursor(0, line);
       tft.print(hour + "  ");
-      tft.println(String(temp, 1));
+      tft.println(String(temp, 1) + " °C");
       line += 10;
       count++;
     }
