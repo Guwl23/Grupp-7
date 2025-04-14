@@ -34,7 +34,7 @@ void bootScreen() {
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.drawString("version 1.01", 20, 10);
+  tft.drawString("version 1.02", 20, 10);
   tft.drawString("Group 7", 100, 50);
   delay(4000);
 }
@@ -64,32 +64,43 @@ void chooseCity() {
   int currentIndex = 0;
   bool chosen = false;
 
+  String city_options[] = {"Stockholm", "Malmo", "Goteborg", "Karlskrona"};
+  int numCities = sizeof(city_options) / sizeof(city_options[0]); // Om vi ville lägga till fler städer senare
+
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(2);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
 
   while (!chosen) {
-    tft.fillRect(0, 40, 240, 60, TFT_BLACK);
-    tft.drawString("Choose city:", 20, 10);
-    tft.drawString(cities[currentIndex].name, 60, 50);
+    tft.drawString("Choose City:", 20, 10);
+
+    for (int i = 0; i < numCities; i++) {
+      int y = 40 + i * 20;  // Justera radposition
+      if (i == currentIndex) {
+        tft.setTextColor(TFT_YELLOW, TFT_BLACK); // Highlightar aktuell stad
+        tft.drawString("> " + city_options[i], 40, y);
+      } else {
+        tft.setTextColor(TFT_WHITE, TFT_BLACK);
+        tft.drawString("  " + city_options[i], 40, y);
+      }
+    }
 
     if (digitalRead(PIN_BUTTON_1) == LOW) {
-      currentIndex = (currentIndex + 1) % 4;
-      delay(1000);
+      currentIndex = (currentIndex + 1) % numCities;
+      delay(300);
     }
 
     if (digitalRead(PIN_BUTTON_2) == LOW) {
-      selectedCity = cities[currentIndex]; //ändrade till -1 här om det inte fungerar bara ta bort igen
+      selectedCity = cities[currentIndex]; // Välj aktuell stad från cities
       chosen = true;
-      delay(1000);
+      delay(300);
     }
-
-    //Bekräftar på displayen
-    tft.fillScreen(TFT_BLACK);
-    tft.drawString("Choose city: " + selectedCity.name, 30, 60);
-    //vill vi lägga till en lista över alla städer?
-    delay(1000);
   }
+
+  // Bekräftelsevisning
+  tft.fillScreen(TFT_BLACK);
+  tft.drawString("Vald stad: " + selectedCity.name, 30, 60);
+  delay(1000);
 }
 
 void drawTempGraph(float temps[24]) {
