@@ -293,7 +293,9 @@ void loop() {
 
   if (digitalRead(PIN_BUTTON_2) == LOW) {
     if (currentPage == -1) currentPage = 0; //Går till Forcast
-    else if (currentPage == 0) currentPage = -1; //Går tillbaka till startsidan
+  }
+  if(digitalRead(PIN_BUTTON_1) == LOW && currentPage == 0) {
+    currentPage = -1;
     delay(200);  // Förhindra snabb växling (debounce)
   }
 
@@ -333,11 +335,7 @@ void loop() {
 
 
 
-  // Kolla om meny-knappen är tryckt för att gå tillbaka till startsidan
-  /*if (digitalRead(PIN_BUTTON_1) == LOW && currentPage == 0) {
-    currentPage = -1;  // Gå tillbaka till menyn
-    delay(200);  // Förhindra snabb växling (debounce)
-  }*/
+
 }
 
 
