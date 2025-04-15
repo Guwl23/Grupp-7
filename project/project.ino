@@ -45,27 +45,22 @@ struct City {
   String name;
   float lon;
   float lat;
+  int stationid;
 };
 
-// Stations-ID
-int getStationId(String cityName) {
-  if (cityName == "Stockholm") return 98230;
-  else if (cityName == "Malmo") return 53430;
-  else if (cityName == "Goteborg") return 71420;
-  else if (cityName == "Karlskrona") return 55320;
-  else return -1; // Okänd stad
-}
+
 
 const City cities[] = {
-  {"Stockholm", 18.0686, 59.3293},
-  {"Malmo", 13.0038, 55.6050},
-  {"Goteborg", 11.9746, 57.7089},
-  {"Karlskrona", 15.6500, 56.1833}
+  {"Stockholm", 18.0686, 59.3293,98230},
+  {"Malmo", 13.0038, 55.6050,53430},
+  {"Goteborg", 11.9746, 57.7089,71420},
+  {"Karlskrona", 15.6500, 56.1833,55320}
 };
 
 City selectedCity;
 
 void displayNext24H(City city);
+void displayHistoricalData(City city);
 
 float temps[24];
 
@@ -211,7 +206,7 @@ void displayNext24H(City city){
   }
 
   String json = client.getString();
-  JsonDocument doc;
+  DynamicJsonDocument doc(2048);
   deserializeJson(doc, json);
 
   JsonArray timeSeries = doc["timeSeries"];
@@ -268,44 +263,36 @@ void displayNext24H(City city){
 }
 
 void displayHistoricalData(City city) {
-  int stationId = getStationId(city.name);
-  if (stationId == -1) {
+  String url = "https://opendata-download-metobs.smhi.se/api/version/latest/parameter/1/station/"
+  + String(city.stationid) + "/period/latest-months/data.json";
+
+  HTTPClient client;
+  client.begin(url);
+  int httpCode = client.GET();
+
+  if (httpCode != 200) {
     tft.fillScreen(TFT_BLACK);
-    tft.drawString("Stad saknar data", 10, 10);
-    delay(2000);
+    tft.drawString("Fel vid hämtning av historik!", 10, 10);
     return;
   }
 
-  // Hämta senaste 30 dagarnas temperatur (parameter=1)
-  String url = "https://opendata-download-metobs.smhi.se/api/version/latest/parameter/1/station/"
-    + String(stationId) + "/period/latest-months/data.json";
-
-  HTTPClient http;
-  http.begin(url);
-  int httpCode = http.GET();
-  Serial.println("HTTP Code: " + String(httpCode));
-  Serial.println("Payload size: " + String(payload.length()));
+  // Läs svar om du vill
+  String payload = client.getString();
+  Serial.println(payload);
 
   if (httpCode != HTTP_CODE_OK) {
     tft.fillScreen(TFT_BLACK);
     tft.drawString("Kunde inte hämta data", 10, 10);
-    http.end();
+    client.end();
     delay(2000);
     return;
   }
 
   // Parsa JSON
-  String payload = http.getString();
-  JsonDocument doc(4096); // Anpassa storlek efter behov (skapar ett uttryme i minnet)
-  DeserializationError error = deserializeJson(doc, payload);
+  DynamicJsonDocument doc(8192); // Anpassa storlek efter behov (skapar ett uttryme i minnet)
+  deserializeJson(doc, payload);
 
-  if (error) {
-    tft.fillScreen(TFT_BLACK);
-    tft.drawString("JSON-parsning misslyckades", 10, 10);
-    http.end();
-    delay(2000);
-    return;
-  }
+
 
   // Extrahera och rita data
   tft.fillScreen(TFT_BLACK);
@@ -339,7 +326,7 @@ for (JsonObject v : values) {
 
   // Rita diagrammet
   drawMonthlyGraph(historicalTemps, count);
-  http.end();
+  client.end();
 }
 
 void SettingsLayout(int selectedOption) {
