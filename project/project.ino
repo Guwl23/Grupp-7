@@ -47,6 +47,15 @@ struct City {
   float lat;
 };
 
+// Stations-ID
+int getStationId(String cityName) {
+  if (cityName == "Stockholm") return 98230;
+  else if (cityName == "Malmo") return 53430;
+  else if (cityName == "Goteborg") return 71420;
+  else if (cityName == "Karlskrona") return 55320;
+  else return -1; // Okänd stad
+}
+
 const City cities[] = {
   {"Stockholm", 18.0686, 59.3293},
   {"Malmo", 13.0038, 55.6050},
@@ -147,6 +156,45 @@ void drawTempGraph(float temps[24]) {
   }
 }
 
+void drawMonthlyGraph(float temps[], int numDays) {
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextColor(TFT_WHITE);
+  tft.setTextSize(1);
+  tft.drawString("Temperatur senaste " + String(numDays) + " dagar", 10, 0);
+
+  // Anpassade diagraminställningar för dagar
+  int graphHeight = 100;
+  int graphWidth = 220;
+  int baseY = 130;
+  int baseX = 20;
+
+  // Y-axel (temperatur)
+  for (int t = -20; t <= 30; t += 10) {
+    int y = baseY - map(t, -20, 30, 0, graphHeight);
+    tft.drawLine(baseX - 3, y, baseX, y, TFT_WHITE);
+    tft.setCursor(0, y - 6);
+    tft.print(String(t) + "°C");
+  }
+
+  // X-axel (dagar)
+  for (int i = 0; i < numDays; i++) {
+    int x = baseX + (i * (graphWidth / numDays));
+    int y = baseY - map(temps[i], -20, 30, 0, graphHeight);
+
+    // Rita linjer
+    if (i > 0) {
+      int prevX = baseX + ((i - 1) * (graphWidth / numDays));
+      int prevY = baseY - map(temps[i - 1], -20, 30, 0, graphHeight);
+      tft.drawLine(prevX, prevY, x, y, TFT_GREEN);  // Annan färg än timdiagrammet
+    }
+
+    // Visa dagsetiketter (var 5:e dag)
+    if (i % 5 == 0 || i == numDays - 1) {
+      tft.drawString(String(i + 1) + "d", x - 5, baseY + 5);
+    }
+  }
+}
+
 void displayNext24H(City city){
   String url = "https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/"
     + String(city.lon, 0) + "/lat/" + String(city.lat, 0) + "/data.json" ;
@@ -219,6 +267,81 @@ void displayNext24H(City city){
   client.end();
 }
 
+void displayHistoricalData(City city) {
+  int stationId = getStationId(city.name);
+  if (stationId == -1) {
+    tft.fillScreen(TFT_BLACK);
+    tft.drawString("Stad saknar data", 10, 10);
+    delay(2000);
+    return;
+  }
+
+  // Hämta senaste 30 dagarnas temperatur (parameter=1)
+  String url = "https://opendata-download-metobs.smhi.se/api/version/latest/parameter/1/station/"
+    + String(stationId) + "/period/latest-months/data.json";
+
+  HTTPClient http;
+  http.begin(url);
+  int httpCode = http.GET();
+  Serial.println("HTTP Code: " + String(httpCode));
+  Serial.println("Payload size: " + String(payload.length()));
+
+  if (httpCode != HTTP_CODE_OK) {
+    tft.fillScreen(TFT_BLACK);
+    tft.drawString("Kunde inte hämta data", 10, 10);
+    http.end();
+    delay(2000);
+    return;
+  }
+
+  // Parsa JSON
+  String payload = http.getString();
+  JsonDocument doc(4096); // Anpassa storlek efter behov (skapar ett uttryme i minnet)
+  DeserializationError error = deserializeJson(doc, payload);
+
+  if (error) {
+    tft.fillScreen(TFT_BLACK);
+    tft.drawString("JSON-parsning misslyckades", 10, 10);
+    http.end();
+    delay(2000);
+    return;
+  }
+
+  // Extrahera och rita data
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextSize(2);
+  tft.drawString("Historisk data", 10, 10);
+  tft.drawString(city.name, 10, 30);
+
+  JsonArray values = doc["value"];
+  float historicalTemps[30] = {0};
+String lastDate = "";
+int count = 0;
+
+for (JsonObject v : values) {
+  String dateTime = v["date"];
+  String dateOnly = dateTime.substring(0, 10);
+
+  // Välj bara EN mätning per dag
+  if (dateOnly != lastDate) {
+    float temp = v["value"];
+    if (!isnan(temp)) {
+      historicalTemps[count] = temp;
+      count++;
+      lastDate = dateOnly;
+    }
+  }
+
+  if (count >= 30) break;
+}
+
+
+  // Rita diagrammet
+  drawMonthlyGraph(historicalTemps, count);
+  http.end();
+}
+
 void SettingsLayout(int selectedOption) {
 
   tft.fillRect(0, 50, 240, 100, TFT_BLACK); // Rensa settings-listan
@@ -239,9 +362,9 @@ void SettingsLayout(int selectedOption) {
   tft.drawString("Configure Defaults", 40, startY + spacing * 6);
   */
 
-  String options[] = {"Temperature", "Humidity", "Wind Speed", "Choose City", "Apply Defaults", "Configure Defaults"};
+  String options[] = {"Temperature", "Humidity", "Wind Speed", "Choose City", "Historical Data", "Apply Defaults", "Configure Defaults"};
 
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 7; i++) {
     tft.setCursor(40, startY + spacing * (i + 1));
     if (i == selectedOption) {
       tft.setTextColor(TFT_YELLOW, TFT_BLACK);  // Highlighta den valda inställningen
@@ -328,7 +451,6 @@ void loop() {
 
   static int currentPage = -1;
   static int lastPage = -2;
-
   static int selectedOption = 0;
 
   /*Lägger till en extra sida så att vi har en startsida som man alltid kan gå tillbaka till
@@ -357,15 +479,24 @@ void loop() {
 
     // Navigera nedåt längs Settings med nedersta knappen
     if (digitalRead(PIN_BUTTON_2) == LOW) {
-      selectedOption = (selectedOption + 1) % 6;  // Gå tillbaka till översta inställningen om du trycker på knappen när du är vid nedersta inställningen
+      selectedOption = (selectedOption + 1) % 7;  // Gå tillbaka till översta inställningen om du trycker på knappen när du är vid nedersta inställningen
       SettingsLayout(selectedOption);  // Rita om settings screen med de nya valen
       delay(200);
     }
 
     // Välj alternativ med översta knappen
     if (digitalRead(PIN_BUTTON_1) == LOW) {
-      // Här kan vi kalla på de nya funktionerna beroende på vilket alternativ som valts.
-      Serial.println("Selected Option: " + String(selectedOption));
+      if (selectedOption == 3) {  // "Choose City"
+        chooseCity();
+        currentPage = -1;
+      }
+      else if (selectedOption == 4) {  // "Historical Data"
+        displayHistoricalData(selectedCity);
+        currentPage = 2;
+      }
+      else {
+        Serial.println("Selected Option: " + String(selectedOption)); // Debug för andra val
+      }
       delay(200);
     }
   }
@@ -393,6 +524,14 @@ void loop() {
       tft.setTextSize(float(1.5));
       tft.drawString("Menu", 290, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
       SettingsLayout(selectedOption);
+    }
+    else if (currentPage == 2) {  // Historisk data-sida
+      tft.drawString("Historisk Data", 10, 10);
+      tft.drawString("Menu", 290, 150);
+      if (digitalRead(PIN_BUTTON_1) == LOW || digitalRead(PIN_BUTTON_2) == LOW) {
+        currentPage = -1;  // Återgå till huvudmenyn
+        delay(200);
+      }
     }
 
     lastPage = currentPage;
