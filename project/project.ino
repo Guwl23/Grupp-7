@@ -250,8 +250,8 @@ void displayNext24H(City city){
 
       String hour = time.substring(11, 16);
       tft.setCursor(0, line);
-      tft.print(hour + "  ");
-      tft.println(String(temp, 1) + " °C");
+      tft.drawString(hour, 0, line);
+      tft.drawString(String(temp, 1) + " °C", 150, line);
       line += 10;
       count++;
     }
@@ -278,7 +278,7 @@ void displayHistoricalData(City city) {
 
   // Läs svar om du vill
   String payload = client.getString();
-  Serial.println(payload);
+
 
   if (httpCode != HTTP_CODE_OK) {
     tft.fillScreen(TFT_BLACK);
@@ -355,12 +355,12 @@ void SettingsLayout(int selectedOption) {
     tft.setCursor(40, startY + spacing * (i + 1));
     if (i == selectedOption) {
       tft.setTextColor(TFT_YELLOW, TFT_BLACK);  // Highlighta den valda inställningen
-      tft.print("> ");  // Lägg till pil
+      tft.drawString("> " + options[i], 40, startY + spacing * (i + 1));  // Pil + text
     } else {
       tft.setTextColor(TFT_WHITE, TFT_BLACK);  // Färg för ovalda inställningar
-      tft.print("  ");
+      tft.drawString("  " + options[i], 40, startY + spacing * (i + 1)); // Mellanslag + text
     }
-    tft.println(options[i]);  // Printa varje inställning
+
   }
 
 }
