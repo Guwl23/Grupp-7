@@ -426,6 +426,7 @@ void setup() {
 
 }
 
+
 /**
  * This is the main loop function that runs continuously after setup.
  * Add your code here to perform tasks repeatedly.
@@ -477,8 +478,7 @@ void loop() {
         chooseCity();
         currentPage = -1;
       }
-      else if (selectedOption == 4) {  // "Historical Data"
-        displayHistoricalData(selectedCity);
+      else if (selectedOption == 4) {
         currentPage = 2;
       }
       else {
@@ -513,20 +513,22 @@ void loop() {
       SettingsLayout(selectedOption);
     }
     else if (currentPage == 2) {  // Historisk data-sida
+      displayHistoricalData(selectedCity);
       tft.drawString("Historisk Data", 10, 10);
-      tft.drawString("Menu", 290, 150);
-      if (digitalRead(PIN_BUTTON_1) == LOW || digitalRead(PIN_BUTTON_2) == LOW) {
-        currentPage = -1;  // Återgå till huvudmenyn
-        delay(200);
-      }
+      tft.drawString("Menu", 270, 150);
+      currentPage == 2;
     }
-
+    else if (currentPage == 2 && (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW)){
+      currentPage = -1;
+      delay(200);
+      }
     lastPage = currentPage;
     delay(400);
   }
 
 
 }
+
 
 
 
