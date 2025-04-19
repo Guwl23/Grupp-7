@@ -334,7 +334,8 @@ struct Settings {
   bool showTemperature;
   bool showHumidity;
   bool showWindSpeed;
-  String city;
+  //Här bör eventuellt historical data ligga ?
+  City city;
 };
 
 // Här skapas defaultSettings och currentSettings.
