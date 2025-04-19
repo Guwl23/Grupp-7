@@ -490,18 +490,39 @@ void loop() {
   /*Lägger till en extra sida så att vi har en startsida som man alltid kan gå tillbaka till
   genom meny knappen och sen en av settings och en av forecast*/
 
+     /*
   if (digitalRead(PIN_BUTTON_2) == LOW) {
     if (currentPage == -1) currentPage = 0; //Går till Forcast
     //else if (currentPage == 0) currentPage = -1; //Går tillbaka till startsidan
     delay(200);  // Förhindra snabb växling (debounce)
   }
+    */
 
+    /*
 
-  if (digitalRead(PIN_BUTTON_1) == LOW) {
+    if (digitalRead(PIN_BUTTON_1) == LOW) {
     if (currentPage == -1) currentPage = 1; //Gå till Settings
     //else if (currentPage == 1) currentPage = -1; //Går tillbaka till startsidan
     delay(200);  // Förhindra snabb växling (debounce)
   }
+    */
+
+    if (digitalRead(PIN_BUTTON_1) == LOW && currentPage == -1) {
+      currentPage = 1;         // Går till Settings
+      selectedOption = 0;      // Reset:a pilen till första alternativet i settings list
+      delay(200);              // Debounce
+      while (digitalRead(PIN_BUTTON_1) == LOW) {
+        delay(10);             // Vänta på att användaren ska lyfta fingret
+      }
+    }
+    if (digitalRead(PIN_BUTTON_2) == LOW && currentPage == -1) {
+      currentPage = 0;         // Gå till forecast
+      delay(200);
+      while (digitalRead(PIN_BUTTON_2) == LOW) {
+        delay(10);             // Vänta på att användaren ska lyfta fingret
+      }
+    }
+
 
   if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
     if (currentPage == 0) currentPage = -1;
