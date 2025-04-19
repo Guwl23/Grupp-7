@@ -329,6 +329,21 @@ for (JsonObject v : values) {
   client.end();
 }
 
+
+struct Settings {
+  bool showTemperature;
+  bool showHumidity;
+  bool showWindSpeed;
+  String city;
+};
+
+// Här skapas defaultSettings och currentSettings.
+Settings defaultSettings;
+Settings currentSettings;
+
+bool hasChosenInitialCity = false;
+
+
 void SettingsLayout(int selectedOption) {
 
   tft.fillRect(0, 50, 240, 100, TFT_BLACK); // Rensa settings-listan
@@ -349,7 +364,15 @@ void SettingsLayout(int selectedOption) {
   tft.drawString("Configure Defaults", 40, startY + spacing * 6);
   */
 
-  String options[] = {"Temperature", "Humidity", "Wind Speed", "Choose City", "Historical Data", "Apply Defaults", "Configure Defaults"};
+  String options[] = {
+  "Temperature",
+  "Humidity",
+  "Wind Speed",
+  "Choose City",
+  "Historical Data",
+  "Apply Defaults",
+  "Configure Defaults"
+  };
 
   for (int i = 0; i < 7; i++) {
     tft.setCursor(40, startY + spacing * (i + 1));
@@ -416,9 +439,31 @@ void setup() {
     Serial.println(&timeinfo, "Tid: %A, %B %d %Y %H:%M:%S");
   }
 
+
   bootScreen();
 
+  /*
+
+  Testar att göra så att chooseCity bara kommer upp allra första gången man startar programmet,
+  och sedan endast genom inställningarna i settings
+
   chooseCity();
+  */
+
+  if (!hasChosenInitialCity) {
+    chooseCity();
+    hasChosenInitialCity = true;
+
+    defaultSettings.city = selectedCity;
+    defaultSettings.showTemperature = false;
+    defaultSettings.showHumidity = false;
+    defaultSettings.showWindSpeed = false;
+
+    currentSettings = defaultSettings; // Första gången som vi skapar default settings
+  }
+
+
+
   //displayNext24H(selectedCity);
   //delay(10000);
 
@@ -465,21 +510,28 @@ void loop() {
 
   if (currentPage == 1) {
 
-    // Navigera nedåt längs Settings med nedersta knappen
+    // Navigera nedåt längs Settings med översta knappen
     if (digitalRead(PIN_BUTTON_2) == LOW) {
       selectedOption = (selectedOption + 1) % 7;  // Gå tillbaka till översta inställningen om du trycker på knappen när du är vid nedersta inställningen
       SettingsLayout(selectedOption);  // Rita om settings screen med de nya valen
       delay(200);
     }
 
-    // Välj alternativ med översta knappen
+    // Välj alternativ med nedersta knappen
     if (digitalRead(PIN_BUTTON_1) == LOW) {
       if (selectedOption == 3) {  // "Choose City"
         chooseCity();
+        currentSettings.city = selectedCity;
         currentPage = -1;
       }
-      else if (selectedOption == 4) {
+      else if (selectedOption == 4) { // "Historical Data"
         currentPage = 2;
+      }
+      else if (selectedOption == 5) {  // "Apply Defaults"
+        currentSettings = defaultSettings;
+        selectedCity = defaultSettings.city; // Reset city också om det behövs
+        Serial.println("Defaults applied.");
+        currentPage = -1;
       }
       else {
         Serial.println("Selected Option: " + String(selectedOption)); // Debug för andra val
