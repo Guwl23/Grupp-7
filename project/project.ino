@@ -508,19 +508,18 @@ void loop() {
     */
 
     if (digitalRead(PIN_BUTTON_1) == LOW && currentPage == -1) {
-      currentPage = 1;         // Går till Settings
-      selectedOption = 0;      // Reset:a pilen till första alternativet i settings list
-      delay(200);              // Debounce
-      while (digitalRead(PIN_BUTTON_1) == LOW) {
-        delay(10);             // Vänta på att användaren ska lyfta fingret
-      }
+      currentPage    = 1;      // Gå till Settings
+      selectedOption = 0;      // Reset:a pilen till översta alternativet i Settings screen
+      delay(200);              // debounce
+      while (digitalRead(PIN_BUTTON_1) == LOW) delay(10);  // Vänta på att användaren ska släppa taget
+      return;                 // Förhindra att annan kod i settings screen som choose city körs direkt
     }
+
     if (digitalRead(PIN_BUTTON_2) == LOW && currentPage == -1) {
-      currentPage = 0;         // Gå till forecast
+      currentPage = 0;        // Gå till Forecast
       delay(200);
-      while (digitalRead(PIN_BUTTON_2) == LOW) {
-        delay(10);             // Vänta på att användaren ska lyfta fingret
-      }
+      while (digitalRead(PIN_BUTTON_2) == LOW) delay(10);
+      return;                 // Förhindra att annan kod i settings screen som choose city körs direkt
     }
 
 
