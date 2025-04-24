@@ -610,12 +610,13 @@ void loop() {
       displayHistoricalData(selectedCity);
       tft.drawString("Historisk Data", 10, 10);
       tft.drawString("Menu", 270, 150);
-      currentPage == 2;
-    }
-    else if (currentPage == 2 && (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW)){
-      currentPage = -1;
-      delay(200);
+    
+      
+      if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
+        currentPage = -1;
+        delay(200);
       }
+    }
     lastPage = currentPage;
     delay(400);
   }
