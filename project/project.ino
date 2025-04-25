@@ -34,7 +34,7 @@ void bootScreen() {
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.drawString("version 1.01", 20, 10);
+  tft.drawString("version 1.02", 20, 10);
   tft.drawString("Group 7", 100, 50);
   delay(4000);
 }
@@ -45,18 +45,22 @@ struct City {
   String name;
   float lon;
   float lat;
+  int stationid;
 };
 
+
+
 const City cities[] = {
-  {"Stockholm", 18.0686, 59.3293},
-  {"Malmo", 13.0038, 55.6050},
-  {"Goteborg", 11.9746, 57.7089},
-  {"Karlskrona", 15.6500, 56.1833}
+  {"Stockholm", 18.0686, 59.3293,98230},
+  {"Malmo", 13.0038, 55.6050,53430},
+  {"Goteborg", 11.9746, 57.7089,71420},
+  {"Karlskrona", 15.6500, 56.1833,55320}
 };
 
 City selectedCity;
 
 void displayNext24H(City city);
+void displayHistoricalData(City city);
 
 float temps[24];
 
@@ -64,32 +68,43 @@ void chooseCity() {
   int currentIndex = 0;
   bool chosen = false;
 
+  String city_options[] = {"Stockholm", "Malmo", "Goteborg", "Karlskrona"};
+  int numCities = sizeof(city_options) / sizeof(city_options[0]); // Om vi ville lägga till fler städer senare
+
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(2);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
 
   while (!chosen) {
-    tft.fillRect(0, 40, 240, 60, TFT_BLACK);
-    tft.drawString("Choose city:", 20, 10);
-    tft.drawString(cities[currentIndex].name, 60, 50);
+    tft.drawString("Choose City:", 20, 10);
+
+    for (int i = 0; i < numCities; i++) {
+      int y = 40 + i * 20;  // Justera radposition
+      if (i == currentIndex) {
+        tft.setTextColor(TFT_YELLOW, TFT_BLACK); // Highlightar aktuell stad
+        tft.drawString("> " + city_options[i], 40, y);
+      } else {
+        tft.setTextColor(TFT_WHITE, TFT_BLACK);
+        tft.drawString("  " + city_options[i], 40, y);
+      }
+    }
 
     if (digitalRead(PIN_BUTTON_1) == LOW) {
-      currentIndex = (currentIndex + 1) % 4;
-      delay(1000);
+      currentIndex = (currentIndex + 1) % numCities;
+      delay(300);
     }
 
     if (digitalRead(PIN_BUTTON_2) == LOW) {
-      selectedCity = cities[currentIndex - 1]; //ändrade till -1 här om det inte fungerar bara ta bort igen
+      selectedCity = cities[currentIndex]; // Välj aktuell stad från cities
       chosen = true;
-      delay(1000);
+      delay(300);
     }
-
-    //Bekräftar på displayen
-    tft.fillScreen(TFT_BLACK);
-    tft.drawString("Choose city: " + selectedCity.name, 30, 60);
-    //vill vi lägga till en lista över alla städer?
-    delay(1000);
   }
+
+  // Bekräftelsevisning
+  tft.fillScreen(TFT_BLACK);
+  tft.drawString("Vald stad: " + selectedCity.name, 30, 60);
+  delay(1000);
 }
 
 void drawTempGraph(float temps[24]) {
@@ -136,6 +151,45 @@ void drawTempGraph(float temps[24]) {
   }
 }
 
+void drawMonthlyGraph(float temps[], int numDays) {
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextColor(TFT_WHITE);
+  tft.setTextSize(1);
+  tft.drawString("Temperatur senaste " + String(numDays) + " dagar", 10, 0);
+
+  // Anpassade diagraminställningar för dagar
+  int graphHeight = 100;
+  int graphWidth = 220;
+  int baseY = 130;
+  int baseX = 20;
+
+  // Y-axel (temperatur)
+  for (int t = -20; t <= 30; t += 10) {
+    int y = baseY - map(t, -20, 30, 0, graphHeight);
+    tft.drawLine(baseX - 3, y, baseX, y, TFT_WHITE);
+    tft.setCursor(0, y - 6);
+    tft.print(String(t) + "°C");
+  }
+
+  // X-axel (dagar)
+  for (int i = 0; i < numDays; i++) {
+    int x = baseX + (i * (graphWidth / numDays));
+    int y = baseY - map(temps[i], -20, 30, 0, graphHeight);
+
+    // Rita linjer
+    if (i > 0) {
+      int prevX = baseX + ((i - 1) * (graphWidth / numDays));
+      int prevY = baseY - map(temps[i - 1], -20, 30, 0, graphHeight);
+      tft.drawLine(prevX, prevY, x, y, TFT_GREEN);  // Annan färg än timdiagrammet
+    }
+
+    // Visa dagsetiketter (var 5:e dag)
+    if (i % 5 == 0 || i == numDays - 1) {
+      tft.drawString(String(i + 1) + "d", x - 5, baseY + 5);
+    }
+  }
+}
+
 void displayNext24H(City city){
   String url = "https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/"
     + String(city.lon, 0) + "/lat/" + String(city.lat, 0) + "/data.json" ;
@@ -152,7 +206,7 @@ void displayNext24H(City city){
   }
 
   String json = client.getString();
-  JsonDocument doc;
+  DynamicJsonDocument doc(2048);
   deserializeJson(doc, json);
 
   JsonArray timeSeries = doc["timeSeries"];
@@ -196,8 +250,8 @@ void displayNext24H(City city){
 
       String hour = time.substring(11, 16);
       tft.setCursor(0, line);
-      tft.print(hour + "  ");
-      tft.println(String(temp, 1) + " °C");
+      tft.drawString(hour, 0, line);
+      tft.drawString(String(temp, 1) + " °C", 150, line);
       line += 10;
       count++;
     }
@@ -208,7 +262,92 @@ void displayNext24H(City city){
   client.end();
 }
 
-void SettingsLayout() {
+void displayHistoricalData(City city) {
+  String url = "https://opendata-download-metobs.smhi.se/api/version/latest/parameter/1/station/"
+  + String(city.stationid) + "/period/latest-months/data.json";
+
+  HTTPClient client;
+  client.begin(url);
+  int httpCode = client.GET();
+
+  if (httpCode != 200) {
+    tft.fillScreen(TFT_BLACK);
+    tft.drawString("Fel vid hämtning av historik!", 10, 10);
+    return;
+  }
+
+  // Läs svar om du vill
+  String payload = client.getString();
+
+
+  if (httpCode != HTTP_CODE_OK) {
+    tft.fillScreen(TFT_BLACK);
+    tft.drawString("Kunde inte hämta data", 10, 10);
+    client.end();
+    delay(2000);
+    return;
+  }
+
+  // Parsa JSON
+  DynamicJsonDocument doc(8192); // Anpassa storlek efter behov (skapar ett uttryme i minnet)
+  deserializeJson(doc, payload);
+
+
+
+  // Extrahera och rita data
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextSize(2);
+  tft.drawString("Historisk data", 10, 10);
+  tft.drawString(city.name, 10, 30);
+
+  JsonArray values = doc["value"];
+  float historicalTemps[30] = {0};
+String lastDate = "";
+int count = 0;
+
+for (JsonObject v : values) {
+  String dateTime = v["date"];
+  String dateOnly = dateTime.substring(0, 10);
+
+  // Välj bara EN mätning per dag
+  if (dateOnly != lastDate) {
+    float temp = v["value"];
+    if (!isnan(temp)) {
+      historicalTemps[count] = temp;
+      count++;
+      lastDate = dateOnly;
+    }
+  }
+
+  if (count >= 30) break;
+}
+
+
+  // Rita diagrammet
+  drawMonthlyGraph(historicalTemps, count);
+  client.end();
+}
+
+
+struct Settings {
+  bool showTemperature;
+  bool showHumidity;
+  bool showWindSpeed;
+  //Här bör eventuellt historical data ligga ?
+  City city;
+};
+
+// Här skapas defaultSettings och currentSettings.
+Settings defaultSettings;
+Settings currentSettings;
+
+bool hasChosenInitialCity = false;
+
+
+void SettingsLayout(int selectedOption) {
+
+  tft.fillRect(0, 50, 240, 100, TFT_BLACK); // Rensa settings-listan
 
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(1);
@@ -216,6 +355,7 @@ void SettingsLayout() {
   int startY = 50;
   int spacing = 12;
 
+  /*
   tft.drawString("Weather Parameters:", 40, startY);
   tft.drawString("Temperature", 40, startY + spacing * 1);
   tft.drawString("Humidity", 40, startY + spacing * 2);
@@ -223,9 +363,47 @@ void SettingsLayout() {
   tft.drawString("Choose City", 40, startY + spacing * 4); // till chooseCity() ?
   tft.drawString("Apply Defaults", 40, startY + spacing * 5);
   tft.drawString("Configure Defaults", 40, startY + spacing * 6);
+  */
+
+  String options[] = {
+  "Temperature",
+  "Humidity",
+  "Wind Speed",
+  "Choose City",
+  "Historical Data",
+  "Apply Defaults",
+  "Configure Defaults"
+  };
+
+  for (int i = 0; i < 7; i++) {
+    tft.setCursor(40, startY + spacing * (i + 1));
+    if (i == selectedOption) {
+      tft.setTextColor(TFT_YELLOW, TFT_BLACK);  // Highlighta den valda inställningen
+      tft.drawString("> " + options[i], 40, startY + spacing * (i + 1));  // Pil + text
+    } else {
+      tft.setTextColor(TFT_WHITE, TFT_BLACK);  // Färg för ovalda inställningar
+      tft.drawString("  " + options[i], 40, startY + spacing * (i + 1)); // Mellanslag + text
+    }
+
+  }
 
 }
 
+// Test för Apply Defaults
+
+void flashCityLetter(char c) {
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextSize(8);
+
+  int16_t x = (tft.width() - (6 * 8)) / 2;
+  int16_t y = (tft.height() - (8 * 8)) / 2;
+  tft.setCursor(x, y);
+  tft.print(c);
+  delay(1000);
+
+  tft.fillScreen(TFT_BLACK);
+}
 
 
 /**
@@ -265,15 +443,52 @@ void setup() {
   Serial.println("Connected to WiFi");
   // Add your code bellow
 
+   // Använder nu svensk sommartid genom en funktion i time.h
+  configTzTime("CET-1CEST,M3.5.0/02,M10.5.0/03", "pool.ntp.org");
+
+
+  // Gör en kontroll att tid har hämtats rätt
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    Serial.println("Kunde inte hämta tid!");
+  } else {
+    Serial.println(&timeinfo, "Tid: %A, %B %d %Y %H:%M:%S");
+  }
+
+
   bootScreen();
 
+  /*
+
+  Testar att göra så att chooseCity bara kommer upp allra första gången man startar programmet,
+  och sedan endast genom inställningarna i settings
+
   chooseCity();
+  */
+
+  if (!hasChosenInitialCity) {
+    chooseCity();
+    // Test för Apply Defaults (endast raden nedanför)
+    flashCityLetter(selectedCity.name.charAt(0));
+    hasChosenInitialCity = true;
+
+    defaultSettings.city = selectedCity;
+    defaultSettings.showTemperature = false;
+    defaultSettings.showHumidity = false;
+    defaultSettings.showWindSpeed = false;
+
+    currentSettings = defaultSettings; // Första gången som vi skapar default settings
+  }
+
+
+
   //displayNext24H(selectedCity);
   //delay(10000);
 
   //måste hänvisa till SMHI för överstående också
 
 }
+
 
 /**
  * This is the main loop function that runs continuously after setup.
@@ -287,22 +502,84 @@ void loop() {
 
   static int currentPage = -1;
   static int lastPage = -2;
+  static int selectedOption = 0;
 
   /*Lägger till en extra sida så att vi har en startsida som man alltid kan gå tillbaka till
   genom meny knappen och sen en av settings och en av forecast*/
 
+     /*
   if (digitalRead(PIN_BUTTON_2) == LOW) {
     if (currentPage == -1) currentPage = 0; //Går till Forcast
-  }
-  if(digitalRead(PIN_BUTTON_1) == LOW && currentPage == 0) {
-    currentPage = -1;
+    //else if (currentPage == 0) currentPage = -1; //Går tillbaka till startsidan
     delay(200);  // Förhindra snabb växling (debounce)
+  }
+    */
+
+    /*
+
+    if (digitalRead(PIN_BUTTON_1) == LOW) {
+    if (currentPage == -1) currentPage = 1; //Gå till Settings
+    //else if (currentPage == 1) currentPage = -1; //Går tillbaka till startsidan
+    delay(200);  // Förhindra snabb växling (debounce)
+  }
+    */
+
+    if (digitalRead(PIN_BUTTON_1) == LOW && currentPage == -1) {
+      currentPage    = 1;      // Gå till Settings
+      selectedOption = 0;      // Reset:a pilen till översta alternativet i Settings screen
+      delay(200);              // debounce
+      while (digitalRead(PIN_BUTTON_1) == LOW) delay(10);  // Vänta på att användaren ska släppa taget
+      return;                 // Förhindra att annan kod i settings screen som choose city körs direkt
+    }
+
+    if (digitalRead(PIN_BUTTON_2) == LOW && currentPage == -1) {
+      currentPage = 0;        // Gå till Forecast
+      delay(200);
+      while (digitalRead(PIN_BUTTON_2) == LOW) delay(10);
+      return;                 // Förhindra att annan kod i settings screen som choose city körs direkt
+    }
+
+
+  if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
+    if (currentPage == 0) currentPage = -1;
+    else if (currentPage == 1) currentPage = -1;
+    delay(200);
   }
 
-  if (digitalRead(PIN_BUTTON_1) == LOW) {
-    if (currentPage == -1) currentPage = 1; //Gå till Settings
-    else if (currentPage == 1) currentPage = -1; //Går tillbaka till startsidan
-    delay(200);  // Förhindra snabb växling (debounce)
+  if (currentPage == 1) {
+
+    // Navigera nedåt längs Settings med översta knappen
+    if (digitalRead(PIN_BUTTON_2) == LOW) {
+      selectedOption = (selectedOption + 1) % 7;  // Gå tillbaka till översta inställningen om du trycker på knappen när du är vid nedersta inställningen
+      SettingsLayout(selectedOption);  // Rita om settings screen med de nya valen
+      delay(200);
+    }
+
+    // Välj alternativ med nedersta knappen
+    if (digitalRead(PIN_BUTTON_1) == LOW) {
+      if (selectedOption == 3) {  // "Choose City"
+        chooseCity();
+        currentSettings.city = selectedCity;
+        // Test för Apply Defaults (endast raden nedanför)
+        flashCityLetter(selectedCity.name.charAt(0));
+        currentPage = -1;
+      }
+      else if (selectedOption == 4) { // "Historical Data"
+        currentPage = 2;
+      }
+      else if (selectedOption == 5) {  // "Apply Defaults"
+        currentSettings = defaultSettings;
+        selectedCity = defaultSettings.city; // Reset city också
+        // Test för Apply Defaults (endast raden nedanför)
+        flashCityLetter(selectedCity.name.charAt(0));
+        Serial.println("Defaults applied.");
+        currentPage = -1;
+      }
+      else {
+        Serial.println("Selected Option: " + String(selectedOption)); // Debug för andra val
+      }
+      delay(200);
+    }
   }
 
 
@@ -320,23 +597,33 @@ void loop() {
     else if (currentPage == 0) {
       tft.drawString("Forecast", 10, 10);
       displayNext24H(selectedCity); ////Ritar grafen för 24 kommande timmar
-      tft.drawString("Menu", 225, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
+      tft.drawString("Menu", 290, 10);  // Meny-knapp för att gå tillbaka till huvudmenyn
       }
 
     else if (currentPage == 1) {
       tft.drawString("Settings", 20, 10);
-      tft.drawString("Menu", 225, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
-      SettingsLayout();
+      tft.setTextSize(float(1.5));
+      tft.drawString("Menu", 290, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
+      SettingsLayout(selectedOption);
     }
-
+    else if (currentPage == 2) {  // Historisk data-sida
+      displayHistoricalData(selectedCity);
+      tft.drawString("Historisk Data", 10, 10);
+      tft.drawString("Menu", 270, 150);
+    
+      
+      if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
+        currentPage = -1;
+        delay(200);
+      }
+    }
     lastPage = currentPage;
     delay(400);
   }
 
 
-
-
 }
+
 
 
 
