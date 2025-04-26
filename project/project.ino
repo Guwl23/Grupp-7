@@ -195,8 +195,6 @@ void displayNext24H(City city){
     + String(city.lon, 0) + "/lat/" + String(city.lat, 0) + "/data.json" ;
     //ändrade antalet decimaler från 4 till 0 i string såg ut som att den avrundade talen till heltal
 
-    Serial.println("API URL: " + url);
-
   HTTPClient client;
   client.begin(url);
   int httpCode = client.GET();
@@ -210,6 +208,8 @@ void displayNext24H(City city){
   Serial.println("Requestion data from API...");
 
   String json = client.getString();
+  Serial.println("Raw JSON response :");
+  Serial.println(json);
   DynamicJsonDocument doc(2048);
   deserializeJson(doc, json);
 
