@@ -205,31 +205,11 @@ void displayNext24H(City city){
     return;
   }
 
-  Serial.println("Requesting data from API..."); //Debug
-
-
   String json = client.getString();
   DynamicJsonDocument doc(2048);
   deserializeJson(doc, json);
 
   JsonArray timeSeries = doc["timeSeries"];
-
-  Serial.println("Number of time series data: " + String(timeSeries.size())); //Debug
-
-  for (JsonObject item : timeSeries) {
-    String time = item["ValidTime"];
-    JsonArray params = item["parameters"];
-    float temp = NAN;
-
-    for (JsonObject p : params) {
-      if (p["name"] == "t" ) {
-        temp = p["values"][0];
-        break;
-      }
-    }
-
-    Serial.println("Time: " + time + "Temp: "+ String(temp));
-  }
 
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
@@ -244,9 +224,14 @@ void displayNext24H(City city){
     return;
   }
 
+  timeinfo.tm_min = 0; // Avrundar ner till närmsta timme
+  timeinfo.tm_sec = 0; // Avrundar ner till närmsta timme
+
   char currentTimeStr[20];
   strftime(currentTimeStr, sizeof(currentTimeStr), "%Y-%m-%dT%H:%M:%S", &timeinfo);
   String nowISO = String(currentTimeStr); // detta matchar SMHI:s "validTime"-format
+
+  Serial.println("Rounded down time: " + nowISO);
 
   int count = 0;
   int line = 45; //Även här för att flytta ner Temperaturen lite.
