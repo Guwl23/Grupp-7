@@ -135,6 +135,7 @@ void drawTempGraph(float temps[], int count) {
     int x = baseX + (i * (graphWidth / 24));
     int y = baseY - ((temps[i] + 10) *  (graphHeight / 40.0)); //tempskala från -10 till 30 grader
 
+    tft.fillCircle(x, y, 2, TFT_RED); // Debug för att kolla grafen
 
     if (i > 0) {
       int prevX = baseX + ((i - 1) * (graphWidth / 24));
