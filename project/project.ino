@@ -205,40 +205,48 @@ void displayNext24H(City city){
     return;
   }
 
+  Serial.println("Requestion data from API...");
+
   String json = client.getString();
   DynamicJsonDocument doc(2048);
   deserializeJson(doc, json);
 
   JsonArray timeSeries = doc["timeSeries"];
+  Serial.println("Number of time series data: " + String(timeSeries.size()));
 
-  tft.fillScreen(TFT_BLACK);
+
+  /* tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
   tft.setCursor(0, 25); //Ändrade till 25 för att fllytta ner diagrammet lite så att den inte krockar med "Forecast"
   tft.setTextSize(2);
-  tft.println("24h prognos i " + city.name);
+  tft.println("24h prognos i " + city.name); */
 
   struct tm timeinfo;
   if (!getLocalTime(&timeinfo)) {
     Serial.println("Kunde inte hämta tid!");
     return;
   }
-
   timeinfo.tm_min = 0; // Avrundar ner till närmsta timme
   timeinfo.tm_sec = 0; // Avrundar ner till närmsta timme
 
-  char currentTimeStr[20];
+  char currentTimeStr[25];
   strftime(currentTimeStr, sizeof(currentTimeStr), "%Y-%m-%dT%H:%M:%S", &timeinfo);
   String nowISO = String(currentTimeStr); // detta matchar SMHI:s "validTime"-format
 
-  Serial.println("Rounded down time: " + nowISO);
+  Serial.println("Rounded down time (nowISO): " + nowISO);
 
   int count = 0;
   int line = 45; //Även här för att flytta ner Temperaturen lite.
 
   for (JsonObject item : timeSeries) {
     String time = item["validTime"];
-    if (time < nowISO) continue; // hoppa över gamla tider
+    Serial.println("API validTime. " + time);
+
+    if (time < nowISO) {
+      Serial.println("Skipping old time: " + time);
+      continue;
+    } // hoppa över gamla tider
     if (count >= 24) break;
 
     JsonArray params = item["parameters"];
@@ -253,6 +261,7 @@ void displayNext24H(City city){
 
     if (!isnan(temp)) {
       temps[count] = temp;
+      Serial.println("Accepted time[" + String(count)+ "]: "+ String(temp));
 
       String hour = time.substring(11, 16);
       tft.setCursor(0, line);
@@ -261,6 +270,11 @@ void displayNext24H(City city){
       line += 10;
       count++;
     }
+  }
+
+  Serial.println("Total valid temps: " + String(count));
+  for (int i = 0; i < count; i++) {
+    Serial.println("temps[" + String(i) + "] =" + String(temps[i]));
   }
 
   drawTempGraph(temps, count);
