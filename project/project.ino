@@ -124,7 +124,7 @@ void drawTempGraph(float temps[], int count) {
 
   //Ritar temperaturen längs y axeln
   for (int t = -10; t <= 30; t += 10) {
-    int y = baseY - ((t + 10) * (graphHeight / 40.0));
+    int y = baseY - ((t + 10) * graphHeight / 40.0);
     tft.drawLine(baseX - 5, y, baseX, y, TFT_WHITE);
     tft.setCursor(0, y - 6);
     tft.setTextSize(1);
@@ -138,7 +138,7 @@ void drawTempGraph(float temps[], int count) {
 
     if (i > 0) {
       int prevX = baseX + ((i - 1) * (graphWidth / 24));
-      int prevY = baseY - ((temps[i - 1] + 10) * (graphHeight / 40.0));
+      int prevY = baseY - ((temps[i - 1] + 10) * graphHeight / 40.0);
       tft.drawLine(prevX, prevY, x, y, TFT_BLUE);
     }
 
