@@ -107,8 +107,7 @@ void chooseCity() {
   delay(1000);
 }
 
-void drawTempGraph(float temps[24]) {
-  tft.fillScreen(TFT_BLACK);
+void drawTempGraph(float temps[], int count) {
   tft.setTextColor(TFT_WHITE);
   tft.setTextSize(1);
   tft.drawString("Temperatur kommande 24 timmar", 10, 0);
@@ -125,21 +124,21 @@ void drawTempGraph(float temps[24]) {
 
   //Ritar temperaturen längs y axeln
   for (int t = -10; t <= 30; t += 10) {
-    int y = baseY - map(t, -10, 30, 0, graphHeight);
+    int y = baseY - ((t + 10) * (graphHeight / 40.0));
     tft.drawLine(baseX - 5, y, baseX, y, TFT_WHITE);
     tft.setCursor(0, y - 6);
     tft.setTextSize(1);
     tft.print(String(t));
   }
 
-  for (int i = 0; i < 24; i++) {
+  for (int i = 0; i < count; i++) {
     int x = baseX + (i * (graphWidth / 24));
-    int y = baseY - map(temps[i], -10, 30, 0, graphHeight); //tempskala från -10 till 30 grader
+    int y = baseY - ((temps[i] + 10) *  (graphHeight / 40.0)); //tempskala från -10 till 30 grader
 
 
     if (i > 0) {
       int prevX = baseX + ((i - 1) * (graphWidth / 24));
-      int prevY = baseY - map(temps[i - 1], -10, 30, 0, graphHeight);
+      int prevY = baseY - ((temps[i - 1] + 10) * (graphHeight / 40.0));
       tft.drawLine(prevX, prevY, x, y, TFT_BLUE);
     }
 
@@ -230,6 +229,7 @@ void displayNext24H(City city){
 
   int count = 0;
   int line = 45; //Även här för att flytta ner Temperaturen lite.
+
   for (JsonObject item : timeSeries) {
     String time = item["validTime"];
     if (time < nowISO) continue; // hoppa över gamla tider
@@ -257,7 +257,7 @@ void displayNext24H(City city){
     }
   }
 
-  drawTempGraph(temps);
+  drawTempGraph(temps, count);
 
   client.end();
 }
