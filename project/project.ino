@@ -205,11 +205,31 @@ void displayNext24H(City city){
     return;
   }
 
+  Serial.println("Requesting data from API..."); //Debug
+
+
   String json = client.getString();
   DynamicJsonDocument doc(2048);
   deserializeJson(doc, json);
 
   JsonArray timeSeries = doc["timeSeries"];
+
+  Serial.println("Number of time series data: " + String(timeSeries.size())); //Debug
+
+  for (JsonObject item : timeSeries) {
+    String time = item["ValidTime"];
+    JsonArray params = item["parameters"];
+    float temp = NAN;
+
+    for (JsonObject p : params) {
+      if (p["name"] == "t" ) {
+        temp = p["values"][0];
+        break;
+      }
+    }
+
+    Serial.println("Time: " + time + "Temp: "+ String(temp));
+  }
 
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
