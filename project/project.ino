@@ -227,8 +227,19 @@ void displayNext24H(City city){
     Serial.println("Kunde inte hämta tid!");
     return;
   }
+
+  if (timeinfo.tm_min > 0 || timeinfo.tm_sec > 0) { // Avrundning
+    timeinfo.tm_hour += 1;
+
+    if (timeinfo.tm_hour >= 24) {
+      timeinfo.tm_hour = 0;
+      timeinfo.tm_mday += 1;
+    }
+  }
+
   timeinfo.tm_min = 0; // Avrundar ner till närmsta timme
   timeinfo.tm_sec = 0; // Avrundar ner till närmsta timme
+  mktime(&timeinfo);
 
   char currentTimeStr[25];
   strftime(currentTimeStr, sizeof(currentTimeStr), "%Y-%m-%dT%H:%M:%S", &timeinfo);
