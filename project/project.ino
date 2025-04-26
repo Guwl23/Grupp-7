@@ -195,6 +195,8 @@ void displayNext24H(City city){
     + String(city.lon, 0) + "/lat/" + String(city.lat, 0) + "/data.json" ;
     //ändrade antalet decimaler från 4 till 0 i string såg ut som att den avrundade talen till heltal
 
+    Serial.println("API URL: " + url);
+
   HTTPClient client;
   client.begin(url);
   int httpCode = client.GET();
@@ -245,7 +247,7 @@ void displayNext24H(City city){
   strftime(currentTimeStr, sizeof(currentTimeStr), "%Y-%m-%dT%H:%M:%S", &timeinfo);
   String nowISO = String(currentTimeStr); // detta matchar SMHI:s "validTime"-format
 
-  Serial.println("Rounded down time (nowISO): " + nowISO);
+  Serial.println("Rounded up time (nowISO): " + nowISO);
 
   int count = 0;
   int line = 45; //Även här för att flytta ner Temperaturen lite.
