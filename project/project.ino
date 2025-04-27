@@ -48,8 +48,6 @@ struct City {
   int stationid;
 };
 
-
-
 const City cities[] = {
   {"Stockholm", 18.0686, 59.3293,98230},
   {"Malmo", 13.0038, 55.6050,53430},
@@ -107,7 +105,7 @@ void chooseCity() {
   delay(1000);
 }
 
-void drawTempGraph(float temps[], int count) {
+void drawTempGraph(float temps[]) {
   tft.setTextColor(TFT_WHITE);
   tft.setTextSize(1);
   tft.drawString("Temperatur kommande 24 timmar", 10, 0);
@@ -131,14 +129,12 @@ void drawTempGraph(float temps[], int count) {
     tft.print(String(t));
   }
 
-  for (int i = 0; i < count; i++) {
+  for (int i = 0; i; i++) {
     int x = baseX + (i * (graphWidth / 24));
     int y = baseY - ((temps[i] + 10) *  (graphHeight / 40.0)); //tempskala från -10 till 30 grader
 
-    tft.fillCircle(x, y, 2, TFT_RED); // Debug för att kolla grafen
-
     if (i > 0) {
-      int prevX = baseX + ((i - 1) * (graphWidth / 24));
+      int prevX = baseX + ((i) * (graphWidth / 24));
       int prevY = baseY - ((temps[i - 1] + 10) * graphHeight / 40.0);
       tft.drawLine(prevX, prevY, x, y, TFT_BLUE);
     }
@@ -207,73 +203,27 @@ void displayNext24H(City city){
 
   Serial.println("Requestion data from API...");
 
-  WiFiClient* stream = client.getStreamPtr();
-  DynamicJsonDocument doc(16384);
-
-  DeserializationError error = deserializeJson(doc, *stream);
-  if (error){
-    Serial.print("deserailizeJson() failed: ");
-    Serial.println(error.c_str());
-    return;
-  }
+  String json = client.getString();
+  DynamicJsonDocument doc(8000);
+  deserializeJson(doc, json);
 
   JsonArray timeSeries = doc["timeSeries"];
-  Serial.print("timeSeries.size(): ");
-  Serial.println(timeSeries.size());
-
-  /* String json = client.getString();
-  Serial.println("Raw JSON response :");
-  Serial.println(json);
-  DynamicJsonDocument doc(2048);
-  deserializeJson(doc, json); */
-
-  /* JsonArray timeSeries = doc["timeSeries"];
-  Serial.println("Number of time series data: " + String(timeSeries.size())); */
+  Serial.println("Number of time series data: " + String(timeSeries.size()));
 
 
-  /* tft.fillScreen(TFT_BLACK);
+  tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.setCursor(0, 25); //Ändrade till 25 för att fllytta ner diagrammet lite så att den inte krockar med "Forecast"
-  tft.setTextSize(2);
-  tft.println("24h prognos i " + city.name); */
+  tft.setCursor(0, 15); //Ändrade till 25 för att fllytta ner diagrammet lite så att den inte krockar med "Forecast"
+  tft.setTextSize(1);
+  tft.println(city.name);
 
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo)) {
-    Serial.println("Kunde inte hämta tid!");
-    return;
-  }
-
-  if (timeinfo.tm_min > 0 || timeinfo.tm_sec > 0) { // Avrundning
-    timeinfo.tm_hour += 1;
-
-    if (timeinfo.tm_hour >= 24) {
-      timeinfo.tm_hour = 0;
-      timeinfo.tm_mday += 1;
-    }
-  }
-
-  timeinfo.tm_min = 0; // Avrundar ner till närmsta timme
-  timeinfo.tm_sec = 0; // Avrundar ner till närmsta timme
-  mktime(&timeinfo);
-
-  char currentTimeStr[25];
-  strftime(currentTimeStr, sizeof(currentTimeStr), "%Y-%m-%dT%H:%M:%SZ", &timeinfo);
-  String nowISO = String(currentTimeStr); // detta matchar SMHI:s "validTime"-format
-
-  Serial.println("Rounded up time (nowISO): " + nowISO);
 
   int count = 0;
   int line = 45; //Även här för att flytta ner Temperaturen lite.
 
   for (JsonObject item : timeSeries) {
     String time = item["validTime"];
-    Serial.println("API validTime. " + time);
-
-    if (time < nowISO) {
-      Serial.println("Skipping old time: " + time);
-      continue;
-    } // hoppa över gamla tider
     if (count >= 24) break;
 
     JsonArray params = item["parameters"];
@@ -288,7 +238,6 @@ void displayNext24H(City city){
 
     if (!isnan(temp)) {
       temps[count] = temp;
-      Serial.println("Accepted time[" + String(count)+ "]: "+ String(temp));
 
       String hour = time.substring(11, 16);
       tft.setCursor(0, line);
@@ -299,12 +248,7 @@ void displayNext24H(City city){
     }
   }
 
-  Serial.println("Total valid temps: " + String(count));
-  for (int i = 0; i < count; i++) {
-    Serial.println("temps[" + String(i) + "] =" + String(temps[i]));
-  }
-
-  drawTempGraph(temps, count);
+  drawTempGraph(temps);
 
   client.end();
 }
@@ -490,28 +434,10 @@ void setup() {
   Serial.println("Connected to WiFi");
   // Add your code bellow
 
-   // Använder nu svensk sommartid genom en funktion i time.h
-  configTzTime("CET-1CEST,M3.5.0/02,M10.5.0/03", "pool.ntp.org");
-
-
-  // Gör en kontroll att tid har hämtats rätt
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo)) {
-    Serial.println("Kunde inte hämta tid!");
-  } else {
-    Serial.println(&timeinfo, "Tid: %A, %B %d %Y %H:%M:%S");
-  }
 
 
   bootScreen();
 
-  /*
-
-  Testar att göra så att chooseCity bara kommer upp allra första gången man startar programmet,
-  och sedan endast genom inställningarna i settings
-
-  chooseCity();
-  */
 
   if (!hasChosenInitialCity) {
     chooseCity();
@@ -527,10 +453,6 @@ void setup() {
     currentSettings = defaultSettings; // Första gången som vi skapar default settings
   }
 
-
-
-  //displayNext24H(selectedCity);
-  //delay(10000);
 
   //måste hänvisa till SMHI för överstående också
 
@@ -594,17 +516,18 @@ void loop() {
   }
 
   if (currentPage == 1) {
-
-    // Navigera nedåt längs Settings med översta knappen
-    if (digitalRead(PIN_BUTTON_2) == LOW) {
+    // Navigera nedåt längs Settings med undre knappen
+    if (digitalRead(PIN_BUTTON_1) == LOW) {
+      delay(300);
       selectedOption = (selectedOption + 1) % 7;  // Gå tillbaka till översta inställningen om du trycker på knappen när du är vid nedersta inställningen
       SettingsLayout(selectedOption);  // Rita om settings screen med de nya valen
       delay(200);
     }
 
-    // Välj alternativ med nedersta knappen
-    if (digitalRead(PIN_BUTTON_1) == LOW) {
+    // Välj alternativ med översta knappen
+    if (digitalRead(PIN_BUTTON_2) == LOW) {
       if (selectedOption == 3) {  // "Choose City"
+        delay(500);
         chooseCity();
         currentSettings.city = selectedCity;
         // Test för Apply Defaults (endast raden nedanför)
