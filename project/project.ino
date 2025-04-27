@@ -244,7 +244,7 @@ void displayNext24H(City city){
   mktime(&timeinfo);
 
   char currentTimeStr[25];
-  strftime(currentTimeStr, sizeof(currentTimeStr), "%Y-%m-%dT%H:%M:%S", &timeinfo);
+  strftime(currentTimeStr, sizeof(currentTimeStr), "%Y-%m-%dT%H:%M:%SZ", &timeinfo);
   String nowISO = String(currentTimeStr); // detta matchar SMHI:s "validTime"-format
 
   Serial.println("Rounded up time (nowISO): " + nowISO);
