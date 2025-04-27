@@ -207,14 +207,28 @@ void displayNext24H(City city){
 
   Serial.println("Requestion data from API...");
 
-  String json = client.getString();
+  WiFiClient* stream = client.getStreamPtr();
+  DynamicJsonDocument doc(16384);
+
+  DeserializationError error = deserializeJson(doc, *stream);
+  if (error){
+    Serial.print("deserailizeJson() failed: ");
+    Serial.println(error.c_str());
+    return;
+  }
+
+  JsonArray timeSeries = doc["timeSeries"];
+  Serial.print("timeSeries.size(): ");
+  Serial.println(timeSeries.size());
+
+  /* String json = client.getString();
   Serial.println("Raw JSON response :");
   Serial.println(json);
   DynamicJsonDocument doc(2048);
-  deserializeJson(doc, json);
+  deserializeJson(doc, json); */
 
-  JsonArray timeSeries = doc["timeSeries"];
-  Serial.println("Number of time series data: " + String(timeSeries.size()));
+  /* JsonArray timeSeries = doc["timeSeries"];
+  Serial.println("Number of time series data: " + String(timeSeries.size())); */
 
 
   /* tft.fillScreen(TFT_BLACK);
