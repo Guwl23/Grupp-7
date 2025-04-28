@@ -13,7 +13,7 @@
 
 
 // Remember to remove these before commiting in GitHub
-String ssid = "";
+String ssid = "BTH_Guest";
 String password = "";
 
 // "tft" is the graphics libary, which has functions to draw on the screen
@@ -129,7 +129,7 @@ void drawTempGraph(float temps[]) {
     tft.print(String(t));
   }
 
-  for (int i = 0; i; i++) {
+  for (int i = 0; i < 24; i++) {
     int x = baseX + (i * (graphWidth / 24));
     int y = baseY - ((temps[i] + 10) *  (graphHeight / 40.0)); //tempskala från -10 till 30 grader
 
@@ -201,10 +201,9 @@ void displayNext24H(City city){
     return;
   }
 
-  Serial.println("Requestion data from API...");
 
   String json = client.getString();
-  DynamicJsonDocument doc(8000);
+  DynamicJsonDocument doc(80000);
   deserializeJson(doc, json);
 
   JsonArray timeSeries = doc["timeSeries"];
@@ -220,7 +219,6 @@ void displayNext24H(City city){
 
 
   int count = 0;
-  int line = 45; //Även här för att flytta ner Temperaturen lite.
 
   for (JsonObject item : timeSeries) {
     String time = item["validTime"];
@@ -238,12 +236,6 @@ void displayNext24H(City city){
 
     if (!isnan(temp)) {
       temps[count] = temp;
-
-      String hour = time.substring(11, 16);
-      tft.setCursor(0, line);
-      tft.drawString(hour, 0, line);
-      tft.drawString(String(temp, 1) + " °C", 150, line);
-      line += 10;
       count++;
     }
   }
@@ -252,6 +244,7 @@ void displayNext24H(City city){
 
   client.end();
 }
+
 
 void displayHistoricalData(City city) {
   String url = "https://opendata-download-metobs.smhi.se/api/version/latest/parameter/1/station/"
@@ -560,8 +553,8 @@ void loop() {
 
     if (currentPage == -1) {
       displayNext24H(selectedCity);  //Ritar grafen för 24 kommande timmar på startsidan
-      tft.drawString("Forecast", 225, 10); //Knappen för forecast
-      tft.drawString("Settings", 225, 140); //Knappen för settings
+      tft.drawString("Forecast", 260, 10); //Knappen för forecast
+      tft.drawString("Settings", 260, 150); //Knappen för settings
     }
 
     else if (currentPage == 0) {
