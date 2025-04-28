@@ -61,6 +61,7 @@ void displayNext24H(City city);
 void displayHistoricalData(City city);
 
 float temps[24];
+int symbols[24];
 
 void chooseCity() {
   int currentIndex = 0;
@@ -105,7 +106,7 @@ void chooseCity() {
   delay(1000);
 }
 
-void drawTempGraph(float temps[]) {
+void drawTempGraph(float temps[], int symbols[]) {
   tft.setTextColor(TFT_WHITE);
   tft.setTextSize(1);
   tft.drawString("Temperatur kommande 24 timmar", 10, 0);
@@ -138,6 +139,12 @@ void drawTempGraph(float temps[]) {
       int prevY = baseY - ((temps[i - 1] + 10) * graphHeight / 40.0);
       tft.drawLine(prevX, prevY, x, y, TFT_BLUE);
     }
+
+    int textY = y - 20; //Hur mycket högre symbol ska vara över
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.setTextSize(1);
+    tft.setCursor(x, textY); // kan ändra x till x-. för bättre placering
+    tft.print(symbols[i]);
 
     //Visar var 3:e timme
     if (i % 3 == 0) {
@@ -226,24 +233,30 @@ void displayNext24H(City city){
 
     JsonArray params = item["parameters"];
     float temp = NAN;
+    int symbol = NAN;
 
     for (JsonObject p : params) {
       if (p["name"] == "t") {
         temp = p["values"][0];
-        break;
+      }
+      if (p["name"] == "Wsymb2") {
+        symbol = p["values"][0];
       }
     }
 
-    if (!isnan(temp)) {
+
+    if (!isnan(temp or symbol)) {
       temps[count] = temp;
+      symbols[count] = symbol;
       count++;
     }
   }
 
-  drawTempGraph(temps);
+
+  drawTempGraph(temps, symbols);
 
   client.end();
-}
+  }
 
 
 void displayHistoricalData(City city) {
