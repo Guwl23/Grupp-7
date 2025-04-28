@@ -521,6 +521,12 @@ void loop() {
     delay(200);
   }
 
+  if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
+    if (currentPage == 2) currentPage = -1;
+    else if (currentPage == 1) currentPage = -1;
+    delay(200);
+  }
+
   if (currentPage == 1) {
     // Navigera nedåt längs Settings med undre knappen
     if (digitalRead(PIN_BUTTON_1) == LOW) {
@@ -587,11 +593,11 @@ void loop() {
       tft.drawString("Historisk Data", 10, 10);
       tft.drawString("Menu", 270, 150);
     
-      
+      /*
       if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
         currentPage = -1;
         delay(200);
-      }
+      }*/
     }
     lastPage = currentPage;
     delay(400);
