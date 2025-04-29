@@ -360,6 +360,29 @@ Settings currentSettings;
 
 bool hasChosenInitialCity = false;
 
+void flashMessage(String message, int & selectedOption) {
+  tft.setTextSize(2);
+  int textWidth = message.length() * 12;
+  int x = (tft.width() - textWidth) / 2;
+  int y = (tft.height() - 16) / 2;
+
+  tft.fillRect(0, y - 5, tft.width(), 30, TFT_BLACK);
+  tft.setTextColor(TFT_GREEN, TFT_BLACK);
+  tft.drawString(message, x, y);
+  delay(1000);
+  tft.fillRect(0, y - 5, tft.width(), 30, TFT_BLACK);
+
+  // Återvänd till settings menyn direkt efter
+  currentPage = 1;
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextSize(2);
+  tft.drawString("Settings", 20, 10);
+  tft.setTextSize(float(1.5));
+  tft.drawString("Menu", 290, 150);
+  SettingsLayout(selectedOption);  // Rita om settings menyn med de sparade valen.
+}
+
+
 /*Uppbyggnaden av settings funktionen där en bläddningsfunktion används
 ...*/
 void SettingsLayout(int selectedOption) {
@@ -383,15 +406,37 @@ void SettingsLayout(int selectedOption) {
   };
 
   for (int i = 0; i < 7; i++) {
+    String optionText = "  " + options[i];
+
+    // ON/OFF markörer bredvid alternativen för att visa vilka som är inställda eller ej
+    if (i == 0) {
+      if (currentSettings.showTemperature) {
+        optionText += " [ON]";
+      } else {
+        optionText += " [OFF]";
+      }
+    } else if (i == 1) {
+      if (currentSettings.showHumidity) {
+        optionText += " [ON]";
+      } else {
+        optionText += " [OFF]";
+      }
+    } else if (i == 2) {
+      if (currentSettings.showWindSpeed) {
+        optionText += " [ON]";
+      } else {
+        optionText += " [OFF]";
+      }
+    }
+
     tft.setCursor(40, startY + spacing * (i + 1));
     if (i == selectedOption) {
       tft.setTextColor(TFT_YELLOW, TFT_BLACK);  // Highlighta den valda inställningen
-      tft.drawString("> " + options[i], 40, startY + spacing * (i + 1));  // Pil + text
+      tft.drawString("> " + optionText, 40, startY + spacing * (i + 1));
     } else {
-      tft.setTextColor(TFT_WHITE, TFT_BLACK);  // Färg för ovalda inställningar
-      tft.drawString("  " + options[i], 40, startY + spacing * (i + 1)); // Mellanslag + text
+      tft.setTextColor(TFT_WHITE, TFT_BLACK);   // Färg för ovalda inställningar
+      tft.drawString(optionText, 40, startY + spacing * (i + 1));
     }
-
   }
 
 }
@@ -527,7 +572,16 @@ void loop() {
 
     // Välj alternativ med nedersta knappen
     if (digitalRead(PIN_BUTTON_1) == LOW) {
-      if (selectedOption == 3) {  // "Choose City"
+      if (selectedOption == 0) {  // "Show Temperature"
+        currentSettings.showTemperature = !currentSettings.showTemperature;
+      }
+      else if (selectedOption == 1) {  // "Show Humidity"
+        currentSettings.showHumidity= !currentSettings.showHumidity;
+      }
+      else if (selectedOption == 2) {  // "Show Wind Speed"
+        currentSettings.showWindSpeed = !currentSettings.showWindSpeed;
+      }
+      else if (selectedOption == 3) {  // "Choose City"
         chooseCity();
         currentSettings.city = selectedCity;
         currentPage = -1;
@@ -540,6 +594,12 @@ void loop() {
         selectedCity = defaultSettings.city; // Reset city också
         Serial.println("Defaults applied.");
         currentPage = -1;
+      }
+      else if (selectedOption == 6) {  //"Configure Defaults"
+        defaultSettings = currentSettings;
+        defaultSettings.city = selectedCity;  // Ensure the correct city is copied
+        Serial.println("New defaults saved.");
+        flashMessage("New defaults saved.", selectedOption);
       }
       else {
         Serial.println("Selected Option: " + String(selectedOption)); // Debug för andra val
