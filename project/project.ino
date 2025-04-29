@@ -557,8 +557,6 @@ void loop() {
 
   //Gemensam funktionalitet för att gå tillbaka till huvudsidan
   if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
-    if (currentPage == 0) currentPage = -1;
-    else if (currentPage == 1) currentPage = -1;
     if (currentPage != -1) currentPage = -1;
     delay(200);
   }
