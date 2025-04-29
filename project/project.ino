@@ -596,8 +596,8 @@ void loop() {
         currentPage = -1;
       }
       else if (selectedOption == 6) {  //"Configure Defaults"
-        defaultSettings = currentSettings;
-        defaultSettings.city = selectedCity;
+        defaultSettings = currentSettings;  // Sätter nuvarande Settings till Default
+        defaultSettings.city = selectedCity; // Detsamma för staden
         Serial.println("New defaults saved.");
         flashMessage("New defaults saved.", selectedOption);
       }
