@@ -396,22 +396,6 @@ void SettingsLayout(int selectedOption) {
 
 }
 
-// Test för Apply Defaults
-
-void flashCityLetter(char c) {
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  tft.setTextSize(8);
-
-  int16_t x = (tft.width() - (6 * 8)) / 2;
-  int16_t y = (tft.height() - (8 * 8)) / 2;
-  tft.setCursor(x, y);
-  tft.print(c);
-  delay(1000);
-
-  tft.fillScreen(TFT_BLACK);
-}
-
 
 /**
  * Setup function
@@ -475,8 +459,6 @@ void setup() {
 
   if (!hasChosenInitialCity) {
     chooseCity();
-    // Test för Apply Defaults (endast raden nedanför)
-    flashCityLetter(selectedCity.name.charAt(0));
     hasChosenInitialCity = true;
 
     defaultSettings.city = selectedCity;
@@ -548,8 +530,6 @@ void loop() {
       if (selectedOption == 3) {  // "Choose City"
         chooseCity();
         currentSettings.city = selectedCity;
-        // Test för Apply Defaults (endast raden nedanför)
-        flashCityLetter(selectedCity.name.charAt(0));
         currentPage = -1;
       }
       else if (selectedOption == 4) { // "Historical Data"
@@ -558,8 +538,6 @@ void loop() {
       else if (selectedOption == 5) {  // "Apply Defaults"
         currentSettings = defaultSettings;
         selectedCity = defaultSettings.city; // Reset city också
-        // Test för Apply Defaults (endast raden nedanför)
-        flashCityLetter(selectedCity.name.charAt(0));
         Serial.println("Defaults applied.");
         currentPage = -1;
       }
