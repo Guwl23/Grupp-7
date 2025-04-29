@@ -525,6 +525,7 @@ void setup() {
 
 }
 
+int currentPage = -1;
 
 /**
  * This is the main loop function that runs continuously after setup.
@@ -536,7 +537,7 @@ void loop() {
   // U.S 2.1 - As a user, I want a menu to navigate between different screens using the two buttons,
   // like forecast and settings screen.
 
-  static int currentPage = -1;
+
   static int lastPage = -2;
   static int selectedOption = 0;
 
