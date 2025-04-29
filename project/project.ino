@@ -109,13 +109,14 @@ void chooseCity() {
   delay(1000);
 }
 
-void drawTempGraph(float temps[24]) {
-  tft.fillScreen(TFT_BLACK);
+
+
 /* Ritar upp grafaxlarna samt axelnumreringen för grafen på displayen.
 Den ritar även upp punkterna för temperaturen och vädersymbolen över temperatur punkten.
 Denna kallas sedan på från displayNext24H*/
 void drawTempGraph(float temps[], int symbols[]) {
   tft.setTextColor(TFT_WHITE);
+  tft.fillScreen(TFT_BLACK);
   tft.setTextSize(1);
   tft.drawString("Temperatur kommande 24 timmar", 10, 0);
 
@@ -156,6 +157,7 @@ void drawTempGraph(float temps[], int symbols[]) {
     }
   }
 }
+
 
 void drawMonthlyGraph(float temps[], int numDays) {
   tft.fillScreen(TFT_BLACK);
@@ -270,7 +272,7 @@ void displayNext24H(City city){
     }
   }
 
-  drawTempGraph(temps);
+  drawTempGraph(temps, symbols);
 
   client.end();
 }
