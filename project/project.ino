@@ -13,7 +13,7 @@
 
 
 // Remember to remove these before commiting in GitHub
-String ssid = "BTH_Guest";
+String ssid = "";
 String password = "";
 
 // "tft" is the graphics libary, which has functions to draw on the screen
@@ -34,7 +34,7 @@ void bootScreen() {
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.drawString("version 1.02", 20, 10);
+  tft.drawString("version 1.03", 20, 10);
   tft.drawString("Group 7", 100, 50);
   delay(4000);
 }
@@ -220,7 +220,7 @@ void displayNext24H(City city){
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.setCursor(0, 15); //Ändrade till 25 för att fllytta ner diagrammet lite så att den inte krockar med "Forecast"
+  tft.setCursor(0, 15);
   tft.setTextSize(1);
   tft.println(city.name);
 
@@ -479,25 +479,8 @@ void loop() {
   static int lastPage = -2;
   static int selectedOption = 0;
 
-  /*Lägger till en extra sida så att vi har en startsida som man alltid kan gå tillbaka till
-  genom meny knappen och sen en av settings och en av forecast*/
 
-     /*
-  if (digitalRead(PIN_BUTTON_2) == LOW) {
-    if (currentPage == -1) currentPage = 0; //Går till Forcast
-    //else if (currentPage == 0) currentPage = -1; //Går tillbaka till startsidan
-    delay(200);  // Förhindra snabb växling (debounce)
-  }
-    */
 
-    /*
-
-    if (digitalRead(PIN_BUTTON_1) == LOW) {
-    if (currentPage == -1) currentPage = 1; //Gå till Settings
-    //else if (currentPage == 1) currentPage = -1; //Går tillbaka till startsidan
-    delay(200);  // Förhindra snabb växling (debounce)
-  }
-    */
 
     if (digitalRead(PIN_BUTTON_1) == LOW && currentPage == -1) {
       currentPage    = 1;      // Gå till Settings
@@ -513,17 +496,9 @@ void loop() {
       while (digitalRead(PIN_BUTTON_2) == LOW) delay(10);
       return;                 // Förhindra att annan kod i settings screen som choose city körs direkt
     }
-
-
+  //Gemensam funktionalitet för att gå tillbaka till huvudsidan
   if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
-    if (currentPage == 0) currentPage = -1;
-    else if (currentPage == 1) currentPage = -1;
-    delay(200);
-  }
-
-  if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
-    if (currentPage == 2) currentPage = -1;
-    else if (currentPage == 1) currentPage = -1;
+    if (currentPage != -1) currentPage = -1;
     delay(200);
   }
 
@@ -592,12 +567,6 @@ void loop() {
       displayHistoricalData(selectedCity);
       tft.drawString("Historisk Data", 10, 10);
       tft.drawString("Menu", 270, 150);
-    
-      /*
-      if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
-        currentPage = -1;
-        delay(200);
-      }*/
     }
     lastPage = currentPage;
     delay(400);
