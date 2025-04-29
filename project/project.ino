@@ -13,8 +13,6 @@
 
 
 // Remember to remove these before commiting in GitHub
-String ssid = "";
-String password = "";
 
 // "tft" is the graphics libary, which has functions to draw on the screen
 TFT_eSPI tft = TFT_eSPI();
@@ -38,7 +36,6 @@ void bootScreen() {
   tft.drawString("Group 7", 100, 50);
   delay(4000);
 }
-
 
 //skriver functioner här och hoppas
 struct City {
@@ -296,7 +293,9 @@ void displayHistoricalData(City city) {
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
   tft.drawString("Historisk data", 10, 10);
-  tft.drawString(city.name, 10, 30);
+  tft.setCursor(0, 15);
+  tft.setTextSize(1);
+  tft.println(city.name);
 
   JsonArray values = doc["value"];
   float historicalTemps[30] = {0};
@@ -351,16 +350,6 @@ void SettingsLayout(int selectedOption) {
 
   int startY = 50;
   int spacing = 12;
-
-  /*
-  tft.drawString("Weather Parameters:", 40, startY);
-  tft.drawString("Temperature", 40, startY + spacing * 1);
-  tft.drawString("Humidity", 40, startY + spacing * 2);
-  tft.drawString("Wind Speed", 40, startY + spacing * 3);
-  tft.drawString("Choose City", 40, startY + spacing * 4); // till chooseCity() ?
-  tft.drawString("Apply Defaults", 40, startY + spacing * 5);
-  tft.drawString("Configure Defaults", 40, startY + spacing * 6);
-  */
 
   String options[] = {
   "Temperature",
@@ -479,9 +468,6 @@ void loop() {
   static int lastPage = -2;
   static int selectedOption = 0;
 
-
-
-
     if (digitalRead(PIN_BUTTON_1) == LOW && currentPage == -1) {
       currentPage    = 1;      // Gå till Settings
       selectedOption = 0;      // Reset:a pilen till översta alternativet i Settings screen
@@ -496,6 +482,7 @@ void loop() {
       while (digitalRead(PIN_BUTTON_2) == LOW) delay(10);
       return;                 // Förhindra att annan kod i settings screen som choose city körs direkt
     }
+
   //Gemensam funktionalitet för att gå tillbaka till huvudsidan
   if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
     if (currentPage != -1) currentPage = -1;
@@ -565,7 +552,9 @@ void loop() {
     }
     else if (currentPage == 2) {  // Historisk data-sida
       displayHistoricalData(selectedCity);
-      tft.drawString("Historisk Data", 10, 10);
+      tft.setCursor(0, 15);
+      tft.setTextSize(1);
+      tft.println(selectedCity.name);
       tft.drawString("Menu", 270, 150);
     }
     lastPage = currentPage;
