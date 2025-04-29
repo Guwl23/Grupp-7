@@ -39,7 +39,7 @@ void bootScreen() {
   delay(4000);
 }
 
-//skriver functioner här och hoppas
+//Strukturerar formatet för citys för att kunna få rätt tillgång till API
 struct City {
   String name;
   float lon;
@@ -47,6 +47,7 @@ struct City {
   int stationid;
 };
 
+//Bygger upp citys för rätt tillgång till olika API:er
 const City cities[] = {
   {"Stockholm", 18.0686, 59.3293,98230},
   {"Malmo", 13.0038, 55.6050,53430},
@@ -62,6 +63,8 @@ void displayHistoricalData(City city);
 float temps[24];
 int symbols[24];
 
+/*Väljer en stad för att få åtkost till rätt API:er från city,
+den valda staden kan ändras vid kallelse av funktionen */
 void chooseCity() {
   int currentIndex = 0;
   bool chosen = false;
@@ -105,6 +108,9 @@ void chooseCity() {
   delay(1000);
 }
 
+/* Ritar upp grafaxlarna samt axelnumreringen för grafen på displayen.
+Den ritar även upp punkterna för temperaturen och vädersymbolen över temperatur punkten.
+Denna kallas sedan på från displayNext24H*/
 void drawTempGraph(float temps[], int symbols[]) {
   tft.setTextColor(TFT_WHITE);
   tft.setTextSize(1);
@@ -192,6 +198,10 @@ void drawMonthlyGraph(float temps[], int numDays) {
   }
 }
 
+/*Tar in vilken stad det är från city för att sedan hämta rätt API via lon och lat.
+Därefter görs detta till ett läsbart dokument av data. Där timeSeries hittas och
+vidare sökes sedan 24 första validTimes för att få ut de 24 första temperaturerna
+samt vädersymbolerna.*/
 void displayNext24H(City city){
   String url = "https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/"
     + String(city.lon, 0) + "/lat/" + String(city.lat, 0) + "/data.json" ;
@@ -327,7 +337,8 @@ for (JsonObject v : values) {
   client.end();
 }
 
-
+/*Strukturerar formatet på settings där vi använder sant eller falskt för att säga
+om det är temp, luftfukt eller vindhastighet ska visas*/
 struct Settings {
   bool showTemperature;
   bool showHumidity;
@@ -342,7 +353,8 @@ Settings currentSettings;
 
 bool hasChosenInitialCity = false;
 
-
+/*Uppbyggnaden av settings funktionen där en bläddningsfunktion används
+...*/
 void SettingsLayout(int selectedOption) {
 
   tft.fillRect(0, 50, 240, 100, TFT_BLACK); // Rensa settings-listan
