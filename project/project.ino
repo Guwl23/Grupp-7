@@ -362,6 +362,7 @@ Settings currentSettings;
 
 bool hasChosenInitialCity = false;
 
+
 void flashMessage(String message, int & selectedOption) {
   tft.setTextSize(2);
   int textWidth = message.length() * 12;
@@ -525,8 +526,6 @@ void setup() {
 
 }
 
-int currentPage = -1;
-
 /**
  * This is the main loop function that runs continuously after setup.
  * Add your code here to perform tasks repeatedly.
@@ -537,7 +536,7 @@ void loop() {
   // U.S 2.1 - As a user, I want a menu to navigate between different screens using the two buttons,
   // like forecast and settings screen.
 
-
+  static int currentPage = -1;
   static int lastPage = -2;
   static int selectedOption = 0;
 
