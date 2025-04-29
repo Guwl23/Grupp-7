@@ -34,13 +34,12 @@ void bootScreen() {
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.drawString("version 1.02", 20, 10);
+  tft.drawString("version 1.03", 20, 10);
   tft.drawString("Group 7", 100, 50);
   delay(4000);
 }
 
-
-//skriver functioner här och hoppas
+//Strukturerar formatet för citys för att kunna få rätt tillgång till API
 struct City {
   String name;
   float lon;
@@ -50,6 +49,7 @@ struct City {
 
 
 
+//Bygger upp citys för rätt tillgång till olika API:er
 const City cities[] = {
   {"Stockholm", 18.0686, 59.3293,98230},
   {"Malmo", 13.0038, 55.6050,53430},
@@ -64,6 +64,8 @@ void displayHistoricalData(City city);
 
 float temps[24];
 
+/*Väljer en stad för att få åtkost till rätt API:er från city,
+den valda staden kan ändras vid kallelse av funktionen */
 void chooseCity() {
   int currentIndex = 0;
   bool chosen = false;
@@ -109,6 +111,10 @@ void chooseCity() {
 
 void drawTempGraph(float temps[24]) {
   tft.fillScreen(TFT_BLACK);
+/* Ritar upp grafaxlarna samt axelnumreringen för grafen på displayen.
+Den ritar även upp punkterna för temperaturen och vädersymbolen över temperatur punkten.
+Denna kallas sedan på från displayNext24H*/
+void drawTempGraph(float temps[], int symbols[]) {
   tft.setTextColor(TFT_WHITE);
   tft.setTextSize(1);
   tft.drawString("Temperatur kommande 24 timmar", 10, 0);
@@ -190,6 +196,10 @@ void drawMonthlyGraph(float temps[], int numDays) {
   }
 }
 
+/*Tar in vilken stad det är från city för att sedan hämta rätt API via lon och lat.
+Därefter görs detta till ett läsbart dokument av data. Där timeSeries hittas och
+vidare sökes sedan 24 första validTimes för att få ut de 24 första temperaturerna
+samt vädersymbolerna.*/
 void displayNext24H(City city){
   String url = "https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/"
     + String(city.lon, 0) + "/lat/" + String(city.lat, 0) + "/data.json" ;
@@ -217,6 +227,9 @@ void displayNext24H(City city){
   tft.setCursor(0, 25); //Ändrade till 25 för att fllytta ner diagrammet lite så att den inte krockar med "Forecast"
   tft.setTextSize(2);
   tft.println("24h prognos i " + city.name);
+  tft.setCursor(0, 15);
+  tft.setTextSize(1);
+  tft.println(city.name);
 
   struct tm timeinfo;
   if (!getLocalTime(&timeinfo)) {
@@ -299,7 +312,9 @@ void displayHistoricalData(City city) {
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
   tft.drawString("Historisk data", 10, 10);
-  tft.drawString(city.name, 10, 30);
+  tft.setCursor(0, 15);
+  tft.setTextSize(1);
+  tft.println(city.name);
 
   JsonArray values = doc["value"];
   float historicalTemps[30] = {0};
@@ -329,7 +344,8 @@ for (JsonObject v : values) {
   client.end();
 }
 
-
+/*Strukturerar formatet på settings där vi använder sant eller falskt för att säga
+om det är temp, luftfukt eller vindhastighet ska visas*/
 struct Settings {
   bool showTemperature;
   bool showHumidity;
@@ -344,7 +360,8 @@ Settings currentSettings;
 
 bool hasChosenInitialCity = false;
 
-
+/*Uppbyggnaden av settings funktionen där en bläddningsfunktion används
+...*/
 void SettingsLayout(int selectedOption) {
 
   tft.fillRect(0, 50, 240, 100, TFT_BLACK); // Rensa settings-listan
@@ -354,16 +371,6 @@ void SettingsLayout(int selectedOption) {
 
   int startY = 50;
   int spacing = 12;
-
-  /*
-  tft.drawString("Weather Parameters:", 40, startY);
-  tft.drawString("Temperature", 40, startY + spacing * 1);
-  tft.drawString("Humidity", 40, startY + spacing * 2);
-  tft.drawString("Wind Speed", 40, startY + spacing * 3);
-  tft.drawString("Choose City", 40, startY + spacing * 4); // till chooseCity() ?
-  tft.drawString("Apply Defaults", 40, startY + spacing * 5);
-  tft.drawString("Configure Defaults", 40, startY + spacing * 6);
-  */
 
   String options[] = {
   "Temperature",
@@ -504,26 +511,6 @@ void loop() {
   static int lastPage = -2;
   static int selectedOption = 0;
 
-  /*Lägger till en extra sida så att vi har en startsida som man alltid kan gå tillbaka till
-  genom meny knappen och sen en av settings och en av forecast*/
-
-     /*
-  if (digitalRead(PIN_BUTTON_2) == LOW) {
-    if (currentPage == -1) currentPage = 0; //Går till Forcast
-    //else if (currentPage == 0) currentPage = -1; //Går tillbaka till startsidan
-    delay(200);  // Förhindra snabb växling (debounce)
-  }
-    */
-
-    /*
-
-    if (digitalRead(PIN_BUTTON_1) == LOW) {
-    if (currentPage == -1) currentPage = 1; //Gå till Settings
-    //else if (currentPage == 1) currentPage = -1; //Går tillbaka till startsidan
-    delay(200);  // Förhindra snabb växling (debounce)
-  }
-    */
-
     if (digitalRead(PIN_BUTTON_1) == LOW && currentPage == -1) {
       currentPage    = 1;      // Gå till Settings
       selectedOption = 0;      // Reset:a pilen till översta alternativet i Settings screen
@@ -539,10 +526,11 @@ void loop() {
       return;                 // Förhindra att annan kod i settings screen som choose city körs direkt
     }
 
-
+  //Gemensam funktionalitet för att gå tillbaka till huvudsidan
   if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
     if (currentPage == 0) currentPage = -1;
     else if (currentPage == 1) currentPage = -1;
+    if (currentPage != -1) currentPage = -1;
     delay(200);
   }
 
@@ -608,7 +596,9 @@ void loop() {
     }
     else if (currentPage == 2) {  // Historisk data-sida
       displayHistoricalData(selectedCity);
-      tft.drawString("Historisk Data", 10, 10);
+      tft.setCursor(0, 15);
+      tft.setTextSize(1);
+      tft.println(selectedCity.name);
       tft.drawString("Menu", 270, 150);
 
 
