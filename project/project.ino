@@ -597,7 +597,7 @@ void loop() {
       }
       else if (selectedOption == 6) {  //"Configure Defaults"
         defaultSettings = currentSettings;
-        defaultSettings.city = selectedCity;  // Ensure the correct city is copied
+        defaultSettings.city = selectedCity;
         Serial.println("New defaults saved.");
         flashMessage("New defaults saved.", selectedOption);
       }
