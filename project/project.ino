@@ -47,8 +47,6 @@ struct City {
   int stationid;
 };
 
-
-
 //Bygger upp citys för rätt tillgång till olika API:er
 const City cities[] = {
   {"Stockholm", 18.0686, 59.3293,98230},
@@ -63,6 +61,7 @@ void displayNext24H(City city);
 void displayHistoricalData(City city);
 
 float temps[24];
+int symbols[24];
 
 /*Väljer en stad för att få åtkost till rätt API:er från city,
 den valda staden kan ändras vid kallelse av funktionen */
@@ -141,14 +140,20 @@ void drawTempGraph(float temps[], int symbols[]) {
 
   for (int i = 0; i < 24; i++) {
     int x = baseX + (i * (graphWidth / 24));
-    int y = baseY - map(temps[i], -10, 30, 0, graphHeight); //tempskala från -10 till 30 grader
+    int y = baseY - ((temps[i] + 10) * (graphHeight / 40.0)); //tempskala från -10 till 30 grader
 
 
     if (i > 0) {
-      int prevX = baseX + ((i - 1) * (graphWidth / 24));
-      int prevY = baseY - map(temps[i - 1], -10, 30, 0, graphHeight);
+      int prevX = baseX + ((i) * (graphWidth / 24));
+      int prevY = baseY - ((temps[i - 1] + 10) * graphHeight / 40.0);
       tft.drawLine(prevX, prevY, x, y, TFT_BLUE);
     }
+
+    int textY = y - 20; //Distansen mellan temp koordinat och symbol koordinat
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.setTextSize(1);
+    tft.setCursor(x, textY);
+    tft.print(symbols[i]);
 
     //Visar var 3:e timme
     if (i % 3 == 0) {
@@ -218,56 +223,41 @@ void displayNext24H(City city){
   }
 
   String json = client.getString();
-  DynamicJsonDocument doc(2048);
+  DynamicJsonDocument doc(80000);
   deserializeJson(doc, json);
 
   JsonArray timeSeries = doc["timeSeries"];
+  Serial.println("Number of time series data: " + String(timeSeries.size()));
 
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.setCursor(0, 25); //Ändrade till 25 för att fllytta ner diagrammet lite så att den inte krockar med "Forecast"
-  tft.setTextSize(2);
-  tft.println("24h prognos i " + city.name);
   tft.setCursor(0, 15);
   tft.setTextSize(1);
   tft.println(city.name);
 
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo)) {
-    Serial.println("Kunde inte hämta tid!");
-    return;
-  }
-
-  char currentTimeStr[20];
-  strftime(currentTimeStr, sizeof(currentTimeStr), "%Y-%m-%dT%H:%M:%S", &timeinfo);
-  String nowISO = String(currentTimeStr); // detta matchar SMHI:s "validTime"-format
-
   int count = 0;
-  int line = 45; //Även här för att flytta ner Temperaturen lite.
+
   for (JsonObject item : timeSeries) {
     String time = item["validTime"];
-    if (time < nowISO) continue; // hoppa över gamla tider
     if (count >= 24) break;
 
     JsonArray params = item["parameters"];
     float temp = NAN;
+    int symbol = NAN;
 
     for (JsonObject p : params) {
       if (p["name"] == "t") {
         temp = p["values"][0];
-        break;
+      }
+      if (p["name"] == "Wsymb2") {
+        symbol = p["values"][0];
       }
     }
 
     if (!isnan(temp)) {
       temps[count] = temp;
-
-      String hour = time.substring(11, 16);
-      tft.setCursor(0, line);
-      tft.drawString(hour, 0, line);
-      tft.drawString(String(temp, 1) + " °C", 150, line);
-      line += 10;
+      symbols[count] = symbol;
       count++;
     }
   }
@@ -482,28 +472,9 @@ void setup() {
   Serial.println("Connected to WiFi");
   // Add your code bellow
 
-   // Använder nu svensk sommartid genom en funktion i time.h
-  configTzTime("CET-1CEST,M3.5.0/02,M10.5.0/03", "pool.ntp.org");
-
-
-  // Gör en kontroll att tid har hämtats rätt
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo)) {
-    Serial.println("Kunde inte hämta tid!");
-  } else {
-    Serial.println(&timeinfo, "Tid: %A, %B %d %Y %H:%M:%S");
-  }
-
 
   bootScreen();
 
-  /*
-
-  Testar att göra så att chooseCity bara kommer upp allra första gången man startar programmet,
-  och sedan endast genom inställningarna i settings
-
-  chooseCity();
-  */
 
   if (!hasChosenInitialCity) {
     chooseCity();
@@ -517,10 +488,6 @@ void setup() {
     currentSettings = defaultSettings; // Första gången som vi skapar default settings
   }
 
-
-
-  //displayNext24H(selectedCity);
-  //delay(10000);
 
   //måste hänvisa till SMHI för överstående också
 
@@ -562,9 +529,9 @@ void loop() {
   }
 
   if (currentPage == 1) {
-
     // Navigera nedåt längs Settings med översta knappen
-    if (digitalRead(PIN_BUTTON_2) == LOW) {
+    if (digitalRead(PIN_BUTTON_1) == LOW) {
+      delay(300);
       selectedOption = (selectedOption + 1) % 7;  // Gå tillbaka till översta inställningen om du trycker på knappen när du är vid nedersta inställningen
       SettingsLayout(selectedOption);  // Rita om settings screen med de nya valen
       delay(200);
@@ -638,12 +605,6 @@ void loop() {
       tft.setTextSize(1);
       tft.println(selectedCity.name);
       tft.drawString("Menu", 270, 150);
-
-
-      if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
-        currentPage = -1;
-        delay(200);
-      }
     }
     lastPage = currentPage;
     delay(400);
