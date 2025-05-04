@@ -359,6 +359,7 @@ Settings currentSettings;
 
 bool hasChosenInitialCity = false;
 
+int currentPage = -1;
 
 void flashMessage(String message, int & selectedOption) {
   tft.setTextSize(2);
@@ -511,7 +512,7 @@ void loop() {
   // U.S 2.1 - As a user, I want a menu to navigate between different screens using the two buttons,
   // like forecast and settings screen.
 
-  static int currentPage = -1;
+  // static int currentPage = -1;      För test
   static int lastPage = -2;
   static int selectedOption = 0;
 
