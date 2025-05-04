@@ -372,6 +372,8 @@ void flashMessage(String message, int & selectedOption) {
   delay(1000);
   tft.fillRect(0, y - 5, tft.width(), 30, TFT_BLACK);
 
+  SettingsLayout(selectedOption);
+
   // Återvänd till settings menyn direkt efter
   /*
   currentPage = 1;
