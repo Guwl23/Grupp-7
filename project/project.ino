@@ -550,7 +550,7 @@ void loop() {
 
     // Välj alternativ med nedersta knappen
     //Del av US 4.1
-    if (digitalRead(PIN_BUTTON_1) == LOW) {
+    if (digitalRead(PIN_BUTTON_2) == LOW) {
       if (selectedOption == 0) {  // "Show Temperature"
         currentSettings.showTemperature = !currentSettings.showTemperature;
       }
