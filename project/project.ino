@@ -373,6 +373,7 @@ void flashMessage(String message, int & selectedOption) {
   tft.fillRect(0, y - 5, tft.width(), 30, TFT_BLACK);
 
   // Återvänd till settings menyn direkt efter
+  /*
   currentPage = 1;
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(2);
@@ -380,6 +381,7 @@ void flashMessage(String message, int & selectedOption) {
   tft.setTextSize(float(1.5));
   tft.drawString("Menu", 290, 150);
   SettingsLayout(selectedOption);  // Rita om settings menyn med de sparade valen.
+  */
 }
 
 
