@@ -208,9 +208,10 @@ Därefter görs detta till ett läsbart dokument av data. Där timeSeries hittas
 vidare sökes sedan 24 första validTimes för att få ut de 24 första temperaturerna
 samt vädersymbolerna.*/
 void displayNext24H(City city){
+  // Väderdata hämtas från SMHI:s öppna API (https://opendata.smhi.se)
+  // Licens: Creative Commons Attribution 4.0 (CC BY 4.0)
   String url = "https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/"
     + String(city.lon, 0) + "/lat/" + String(city.lat, 0) + "/data.json" ;
-    //ändrade antalet decimaler från 4 till 0 i string såg ut som att den avrundade talen till heltal
 
   HTTPClient client;
   client.begin(url);
@@ -235,6 +236,7 @@ void displayNext24H(City city){
   tft.setCursor(0, 15);
   tft.setTextSize(1);
   tft.println(city.name);
+  tft.drawString("Data: SMHI Open Data", 5, 165);
 
   int count = 0;
 
@@ -268,6 +270,8 @@ void displayNext24H(City city){
 }
 
 void displayHistoricalData(City city) {
+  // Väderdata hämtas från SMHI:s öppna API (https://opendata.smhi.se)
+  // Licens: Creative Commons Attribution 4.0 (CC BY 4.0)
   String url = "https://opendata-download-metobs.smhi.se/api/version/latest/parameter/1/station/"
   + String(city.stationid) + "/period/latest-months/data.json";
 
@@ -307,6 +311,9 @@ void displayHistoricalData(City city) {
   tft.setCursor(0, 15);
   tft.setTextSize(1);
   tft.println(city.name);
+  tft.setTextSize(1);
+  tft.setTextColor(TFT_WHITE);
+  tft.drawString("Data: SMHI Open Data", 5, 160);
 
   JsonArray values = doc["value"];
   float historicalTemps[30] = {0};
@@ -378,6 +385,7 @@ void flashMessage(String message, int & selectedOption) {
 
 /*Uppbyggnaden av settings funktionen där en bläddningsfunktion används
 ...*/
+//U.S 4.1 - As a user, I want to access a settings menu to configure weather data display options.
 void SettingsLayout(int selectedOption) {
 
   tft.fillRect(0, 50, 240, 100, TFT_BLACK); // Rensa settings-listan
@@ -522,7 +530,8 @@ void loop() {
       return;                 // Förhindra att annan kod i settings screen som choose city körs direkt
     }
 
-  //Gemensam funktionalitet för att gå tillbaka till huvudsidan
+  /*US2.2B: As a user, I want to access the menu from anywhere in the program
+  by holding both buttons simultaneously. */
   if (digitalRead(PIN_BUTTON_1) == LOW && digitalRead(PIN_BUTTON_2) == LOW) {
     if (currentPage != -1) currentPage = -1;
     delay(200);
@@ -538,6 +547,7 @@ void loop() {
     }
 
     // Välj alternativ med nedersta knappen
+    //Del av US 4.1
     if (digitalRead(PIN_BUTTON_1) == LOW) {
       if (selectedOption == 0) {  // "Show Temperature"
         currentSettings.showTemperature = !currentSettings.showTemperature;
@@ -548,6 +558,9 @@ void loop() {
       else if (selectedOption == 2) {  // "Show Wind Speed"
         currentSettings.showWindSpeed = !currentSettings.showWindSpeed;
       }
+
+      /*U.S 4.3 - As a user, I want to select different cities to view their
+      weather data for the historical data and starting screen forecast. */
       else if (selectedOption == 3) {  // "Choose City"
         chooseCity();
         currentSettings.city = selectedCity;
@@ -556,6 +569,8 @@ void loop() {
       else if (selectedOption == 4) { // "Historical Data"
         currentPage = 2;
       }
+
+      //U.S 4.4 - As a user, I want to reset settings to default via a menu option.
       else if (selectedOption == 5) {  // "Apply Defaults"
         currentSettings = defaultSettings;
         selectedCity = defaultSettings.city; // Reset city också
@@ -590,16 +605,18 @@ void loop() {
     else if (currentPage == 0) {
       tft.drawString("Forecast", 10, 10);
       displayNext24H(selectedCity); ////Ritar grafen för 24 kommande timmar
-      tft.drawString("Menu", 290, 10);  // Meny-knapp för att gå tillbaka till huvudmenyn
+      tft.drawString("Menu", 290, 10);
       }
 
     else if (currentPage == 1) {
       tft.drawString("Settings", 20, 10);
       tft.setTextSize(float(1.5));
-      tft.drawString("Menu", 290, 150);  // Meny-knapp för att gå tillbaka till huvudmenyn
+      tft.drawString("Menu", 290, 150);
       SettingsLayout(selectedOption);
     }
-    else if (currentPage == 2) {  // Historisk data-sida
+
+    //U.S 3.1 - As a user, I want to have a menu option and screen to view historical weather data
+    else if (currentPage == 2) {
       displayHistoricalData(selectedCity);
       tft.setCursor(0, 15);
       tft.setTextSize(1);
