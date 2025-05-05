@@ -389,14 +389,18 @@ void loadDefaultsFromFile() {
     return;
   }
 
-  File file = LittleFS.open("/defaults.json", "r");
+
+  File file = LittleFS.open("/defaults.json", "r");  // Öppna filen för att läsa den
   if (!file) {
     Serial.println("Failed to open defaults file");
     return;
   }
 
   StaticJsonDocument<256> doc;
+
   DeserializationError error = deserializeJson(doc, file);
+
+  // Stäng filen efter att ha läst den
   file.close();
 
   if (error) {
@@ -404,11 +408,12 @@ void loadDefaultsFromFile() {
     return;
   }
 
+  // Ge värden till defaultSettings
   defaultSettings.showTemperature = doc["showTemperature"] | false;
   defaultSettings.showHumidity = doc["showHumidity"] | false;
   defaultSettings.showWindSpeed = doc["showWindSpeed"] | false;
 
-  // Matchar city name till hela City objektet i struct
+  // Matcha city name till hela City struct objektet
   String cityName = doc["city"].as<String>();
   for (City c : cities) {
     if (c.name == cityName) {
@@ -417,9 +422,11 @@ void loadDefaultsFromFile() {
     }
   }
 
+  // Gör värden till currentSettings
   currentSettings = defaultSettings;
   Serial.println("Defaults loaded from LittleFS");
 }
+
 
 
 
