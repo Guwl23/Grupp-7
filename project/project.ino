@@ -11,6 +11,9 @@
 #include <TFT_eSPI.h>
 #include <time.h>
 
+// Lägger till bibliotek för att spara default settings efter restart
+#include <LittleFS.h>
+
 
 // Remember to remove these before commiting in GitHub
 String ssid = "";
@@ -359,6 +362,66 @@ Settings currentSettings;
 
 bool hasChosenInitialCity = false;
 
+// Skapar funktion för att spara användarens valda default settings till en fil
+void saveDefaultsToFile() {
+  File file = LittleFS.open("/defaults.json", "w");
+  if (!file) {
+    Serial.println("Failed to open file for writing");
+    return;
+  }
+
+  StaticJsonDocument<256> doc;
+  doc["showTemperature"] = defaultSettings.showTemperature;
+  doc["showHumidity"] = defaultSettings.showHumidity;
+  doc["showWindSpeed"] = defaultSettings.showWindSpeed;
+  doc["city"] = defaultSettings.city.name;
+
+  serializeJson(doc, file);
+  file.close();
+  Serial.println("Defaults saved to LittleFS");
+}
+
+// Skapar funktion för att ladda in användarens valda default settings
+void loadDefaultsFromFile() {
+  if (!LittleFS.exists("/defaults.json")) {
+    Serial.println("Defaults file not found, using hardcoded defaults");
+    return;
+  }
+
+  File file = LittleFS.open("/defaults.json", "r");
+  if (!file) {
+    Serial.println("Failed to open defaults file");
+    return;
+  }
+
+  StaticJsonDocument<256> doc;
+  DeserializationError error = deserializeJson(doc, file);
+  file.close();
+
+  if (error) {
+    Serial.println("Failed to parse defaults file");
+    return;
+  }
+
+  defaultSettings.showTemperature = doc["showTemperature"] | false;
+  defaultSettings.showHumidity = doc["showHumidity"] | false;
+  defaultSettings.showWindSpeed = doc["showWindSpeed"] | false;
+
+  // Matchar city name till hela City objektet i struct
+  String cityName = doc["city"].as<String>();
+  for (City c : cities) {
+    if (c.name == cityName) {
+      defaultSettings.city = c;
+      break;
+    }
+  }
+
+  currentSettings = defaultSettings;
+  Serial.println("Defaults loaded from LittleFS");
+}
+
+
+
 
 void flashMessage(String message, int & selectedOption) {
   tft.setTextSize(2);
@@ -459,6 +522,14 @@ void setup() {
   // Wait for the Serial port to be ready
   while (!Serial);
   Serial.println("Starting ESP32 program...");
+  // Startar LittleFS biblioteket för att kunna spara default settings i separat fil
+  if (!LittleFS.begin()) {
+    Serial.println("LittleFS mount failed. Defaults will not persist.");
+  } else {
+    loadDefaultsFromFile(); // Laddar användarens valda default settings
+  }
+
+
   tft.init();
   tft.setRotation(1);
   tft.fillScreen(TFT_BLACK);
@@ -580,6 +651,7 @@ void loop() {
       else if (selectedOption == 6) {  //"Configure Defaults"
         defaultSettings = currentSettings;  // Sätter nuvarande Settings till Default
         defaultSettings.city = selectedCity; // Detsamma för staden
+        saveDefaultsToFile();  // Spara default settings till LittleFS
         Serial.println("New defaults saved.");
         flashMessage("New defaults saved.", selectedOption);
       }
