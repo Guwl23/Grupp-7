@@ -523,14 +523,6 @@ void setup() {
   // Wait for the Serial port to be ready
   while (!Serial);
   Serial.println("Starting ESP32 program...");
-  // Startar LittleFS biblioteket för att kunna spara default settings i separat fil
-  if (!LittleFS.begin()) {
-    Serial.println("LittleFS mount failed. Defaults will not persist.");
-  } else {
-    loadDefaultsFromFile(); // Laddar användarens valda default settings
-  }
-
-
   tft.init();
   tft.setRotation(1);
   tft.fillScreen(TFT_BLACK);
@@ -556,6 +548,12 @@ void setup() {
   Serial.println("Connected to WiFi");
   // Add your code bellow
 
+  // Startar LittleFS biblioteket för att kunna spara default settings i separat fil
+  if (!LittleFS.begin()) {
+    Serial.println("LittleFS mount failed. Defaults will not persist.");
+  } else {
+    loadDefaultsFromFile(); // Laddar användarens valda default settings
+  }
 
   bootScreen();
 
