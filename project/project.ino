@@ -236,7 +236,7 @@ void displayNext24H(City city){
   tft.setCursor(0, 15);
   tft.setTextSize(1);
   tft.println(city.name);
-  tft.drawString("Data: SMHI Open Data", 5, 165);
+  tft.drawString("Data: SMHI Open Data", 5, 155);
 
   int count = 0;
 
@@ -313,7 +313,7 @@ void displayHistoricalData(City city) {
   tft.println(city.name);
   tft.setTextSize(1);
   tft.setTextColor(TFT_WHITE);
-  tft.drawString("Data: SMHI Open Data", 5, 160);
+  tft.drawString("Data: SMHI Open Data", 5, 155);
 
   JsonArray values = doc["value"];
   float historicalTemps[30] = {0};
@@ -499,10 +499,6 @@ void setup() {
 
     currentSettings = defaultSettings; // Första gången som vi skapar default settings
   }
-
-
-  //måste hänvisa till SMHI för överstående också
-
 }
 
 /**
