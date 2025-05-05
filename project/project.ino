@@ -12,6 +12,7 @@
 #include <time.h>
 
 // Lägger till bibliotek för att spara default settings efter restart
+#include <FS.h>
 #include <LittleFS.h>
 
 
