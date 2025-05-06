@@ -362,7 +362,7 @@ struct Settings {
 Settings defaultSettings;
 Settings currentSettings;
 
-bool hasChosenInitialCity = false;
+
 
 // Skapar funktion för att spara användarens valda default settings till en fil
 void saveDefaultsToFile() {
@@ -560,24 +560,27 @@ void setup() {
   // Startar LittleFS biblioteket för att kunna spara default settings i separat fil
   if (!LittleFS.begin()) {
     Serial.println("LittleFS mount failed. Defaults will not persist.");
-  } else {
-    loadDefaultsFromFile(); // Laddar användarens valda default settings
+  }
+
+
+  bool firstRun = !LittleFS.exists("/defaults.json");
+  if (firstRun) {
+    // Första gången som programmet körs och användaren får frågan om choosecity
+    chooseCity();
+    defaultSettings.city = selectedCity;
+    defaultSettings.showTemperature = false;
+    defaultSettings.showHumidity    = false;
+    defaultSettings.showWindSpeed   = false;
+    currentSettings = defaultSettings;
+    saveDefaultsToFile();     // skriv ut dem så att nästa boot inte är firstrun
+  }
+  else {
+    // Alla andra boots: Starta med de inställningarna som användaren har valt
+    loadDefaultsFromFile();
   }
 
   bootScreen();
 
-
-  if (!hasChosenInitialCity) {
-    chooseCity();
-    hasChosenInitialCity = true;
-
-    defaultSettings.city = selectedCity;
-    defaultSettings.showTemperature = false;
-    defaultSettings.showHumidity = false;
-    defaultSettings.showWindSpeed = false;
-
-    currentSettings = defaultSettings; // Första gången som vi skapar default settings
-  }
 }
 
 /**
