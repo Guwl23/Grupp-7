@@ -582,6 +582,7 @@ void setup() {
   if (firstRun) {
     // Första gången som programmet körs och användaren får frågan om choosecity
     chooseCity();
+
     defaultSettings.city = selectedCity;
     defaultSettings.showTemperature = false;
     defaultSettings.showHumidity    = false;
@@ -593,6 +594,7 @@ void setup() {
   else {
     // Alla andra boots: Starta med de inställningarna som användaren har valt
     loadDefaultsFromFile();
+    selectedCity = defaultSettings.city;
   }
 
 }
