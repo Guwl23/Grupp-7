@@ -241,7 +241,6 @@ void displayNext24H(City city){
   tft.setCursor(0, 15);
   tft.setTextSize(1);
   tft.println(city.name);
-  tft.drawString("Data: SMHI Open Data", 5, 155);
 
   int count = 0;
 
@@ -316,9 +315,6 @@ void displayHistoricalData(City city) {
   tft.setCursor(0, 15);
   tft.setTextSize(1);
   tft.println(city.name);
-  tft.setTextSize(1);
-  tft.setTextColor(TFT_WHITE);
-  tft.drawString("Data: SMHI Open Data", 5, 155);
 
   JsonArray values = doc["value"];
   float historicalTemps[30] = {0};
@@ -699,12 +695,14 @@ void loop() {
       displayNext24H(selectedCity);  //Ritar grafen för 24 kommande timmar på startsidan
       tft.drawString("Forecast", 225, 10); //Knappen för forecast
       tft.drawString("Settings", 225, 140); //Knappen för settings
+      tft.drawString("Data: SMHI Open Data", 5, 150);
     }
 
     else if (currentPage == 0) {
       tft.drawString("Forecast", 10, 10);
       displayNext24H(selectedCity); ////Ritar grafen för 24 kommande timmar
       tft.drawString("Menu", 290, 10);
+      tft.drawString("Data: SMHI Open Data", 5, 150);
       }
 
     else if (currentPage == 1) {
@@ -721,6 +719,7 @@ void loop() {
       tft.setTextSize(1);
       tft.println(selectedCity.name);
       tft.drawString("Menu", 270, 150);
+      tft.drawString("Data: SMHI Open Data", 5, 155);
     }
     lastPage = currentPage;
     delay(400);
