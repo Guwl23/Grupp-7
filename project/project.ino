@@ -562,6 +562,7 @@ void setup() {
     Serial.println("LittleFS mount failed. Defaults will not persist.");
   }
 
+  bootScreen();
 
   bool firstRun = !LittleFS.exists("/defaults.json");
   if (firstRun) {
@@ -578,8 +579,6 @@ void setup() {
     // Alla andra boots: Starta med de inställningarna som användaren har valt
     loadDefaultsFromFile();
   }
-
-  bootScreen();
 
 }
 
