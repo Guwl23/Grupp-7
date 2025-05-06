@@ -80,6 +80,7 @@ void chooseCity() {
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(2);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  delay(1000);
 
   while (!chosen) {
     tft.drawString("Choose City:", 20, 10);
