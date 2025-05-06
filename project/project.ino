@@ -7,13 +7,14 @@
 #include "pin_config.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
+// Lägger till bibliotek för att spara default settings efter restart (LittleFS) och ett för att hantera filer
+#include <FS.h>
+#include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <TFT_eSPI.h>
 #include <time.h>
 
-// Lägger till bibliotek för att spara default settings efter restart
-#include <FS.h>
-#include <LittleFS.h>
+
 
 
 // Remember to remove these before commiting in GitHub
@@ -381,6 +382,7 @@ void saveDefaultsToFile() {
   file.close();
   Serial.println("Defaults saved to LittleFS");
 }
+
 
 // Skapar funktion för att ladda in användarens valda default settings
 void loadDefaultsFromFile() {
