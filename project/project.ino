@@ -558,13 +558,27 @@ void setup() {
   // Add your code bellow
 
   // Startar LittleFS biblioteket för att kunna spara default settings i separat fil
-  if (!LittleFS.begin()) {
-    Serial.println("LittleFS mount failed. Defaults will not persist.");
+  if (!LittleFS.begin(true)) {
+    Serial.println("LittleFS mount (and format) failed.");
   }
 
+  // Debugging
+  Serial.println("FS Contents:");
+  File root = LittleFS.open("/", "r");
+  File entry;
+  while (entry = root.openNextFile()) {
+    Serial.print("  ");
+    Serial.println(entry.name());
+    entry.close();
+  }
+  root.close();
+
+  // Visa bootscreen
   bootScreen();
 
   bool firstRun = !LittleFS.exists("/defaults.json");
+  Serial.print("firstRun = "); Serial.println(firstRun);
+
   if (firstRun) {
     // Första gången som programmet körs och användaren får frågan om choosecity
     chooseCity();
@@ -573,7 +587,8 @@ void setup() {
     defaultSettings.showHumidity    = false;
     defaultSettings.showWindSpeed   = false;
     currentSettings = defaultSettings;
-    saveDefaultsToFile();     // skriv ut dem så att nästa boot inte är firstrun
+    saveDefaultsToFile();     // Skriv ut dem så att nästa boot inte är firstrun
+    Serial.println("-> saved defaults.json");
   }
   else {
     // Alla andra boots: Starta med de inställningarna som användaren har valt
