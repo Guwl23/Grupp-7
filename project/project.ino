@@ -18,8 +18,8 @@
 
 
 // Remember to remove these before commiting in GitHub
-String ssid = "";
-String password = "";
+String ssid = "iPhone";
+String password = "12345670";
 
 // "tft" is the graphics libary, which has functions to draw on the screen
 TFT_eSPI tft = TFT_eSPI();
@@ -54,19 +54,40 @@ struct City {
 
 //Bygger upp citys för rätt tillgång till olika API:er
 const City cities[] = {
-  {"Stockholm", 18.0686, 59.3293,98230},
-  {"Malmo", 13.0038, 55.6050,53430},
+  {"Stockholm", 18.0686, 59.3293,97200},
+  {"Malmo", 13.0038, 55.6050,52350},
   {"Goteborg", 11.9746, 57.7089,71420},
-  {"Karlskrona", 15.6500, 56.1833,55320}
+  {"Karlskrona", 15.6500, 56.1833,65090}
+};
+/*Strukturerar formatet på settings där vi använder sant eller falskt för att säga
+om det är temp, luftfukt eller vindhastighet ska visas*/
+struct Settings {
+  bool showTemperature;
+  bool showHumidity;
+  bool showWindSpeed;
+  bool histShowTemperature;  // New: For historical temperature
+  bool histShowHumidity;     // New: For historical humidity
+  bool histShowWindSpeed;    // New: For historical wind speed
+  //Här bör eventuellt historical data ligga ?
+  City city;
 };
 
+// Här skapas defaultSettings och currentSettings.
+Settings defaultSettings;
+Settings currentSettings;
 City selectedCity;
 
 void displayNext24H(City city);
 void displayHistoricalData(City city);
+void fetchAndDrawParameter(City city, int parameter, String title, uint16_t color);
 
 float temps[24];
 int symbols[24];
+
+// SMHI Parameter IDs
+const int PARAM_TEMP = 1;
+const int PARAM_HUMIDITY = 6;
+const int PARAM_WIND_SPEED = 4;
 
 /*Väljer en stad för att få åtkost till rätt API:er från city,
 den valda staden kan ändras vid kallelse av funktionen */
@@ -170,43 +191,71 @@ void drawTempGraph(float temps[], int symbols[]) {
 }
 
 
-void drawMonthlyGraph(float temps[], int numDays) {
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_WHITE);
-  tft.setTextSize(1);
-  tft.drawString("Temperatur senaste " + String(numDays) + " dagar", 10, 0);
+void drawMonthlyGraph(float data[], int numDays, String title, uint16_t color) {
+  // Rensa bara diagramområdet (behåll menytexter etc)
+  tft.fillRect(0, 40, 320, 100, TFT_BLACK);
 
-  // Anpassade diagraminställningar för dagar
-  int graphHeight = 100;
+  // Rita titel med angiven färg
+  tft.setTextColor(color, TFT_BLACK);
+  tft.setTextSize(1);
+  tft.drawString(title + " senaste " + String(numDays) + " dagar", 10, 40);
+
+  // Diagraminställningar
+  int graphHeight = 80;
   int graphWidth = 220;
-  int baseY = 130;
+  int baseY = 120;
   int baseX = 20;
 
-  // Y-axel (temperatur)
-  for (int t = -20; t <= 30; t += 10) {
-    int y = baseY - map(t, -20, 30, 0, graphHeight);
-    tft.drawLine(baseX - 3, y, baseX, y, TFT_WHITE);
-    tft.setCursor(0, y - 6);
-    tft.print(String(t) + "°C");
+  // Hitta min/max-värden för automatisk skalning
+  float minVal = data[0];
+  float maxVal = data[0];
+  for (int i = 1; i < numDays; i++) {
+    if (data[i] < minVal) minVal = data[i];
+    if (data[i] > maxVal) maxVal = data[i];
   }
 
-  // X-axel (dagar)
+  // Justera skalningen för bättre visning
+  minVal = floor(minVal) - 2;  // Rundar ner och ger lite marginal
+  maxVal = ceil(maxVal) + 2;   // Rundar upp och ger lite marginal
+  if (maxVal - minVal < 5) maxVal = minVal + 5; // Förhindrar för platta diagram
+
+  // Rita Y-axel med skalmarkeringar
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  for (int i = 0; i <= 5; i++) {
+    float value = minVal + (maxVal - minVal) * i / 5;
+    int y = baseY - (graphHeight * i / 5);
+    tft.drawLine(baseX - 5, y, baseX, y, TFT_WHITE);
+    tft.setCursor(0, y - 6);
+    tft.print(String(value, 1)); // Visar med 1 decimal
+  }
+
+  // Rita X-axel
+  tft.drawLine(baseX, baseY, baseX + graphWidth, baseY, TFT_WHITE);
+
+  // Rita datalinjen med angiven färg
   for (int i = 0; i < numDays; i++) {
     int x = baseX + (i * (graphWidth / numDays));
-    int y = baseY - map(temps[i], -20, 30, 0, graphHeight);
+    int y = baseY - map(data[i], minVal, maxVal, 0, graphHeight);
 
-    // Rita linjer
+    // Rita linje till föregående punkt
     if (i > 0) {
       int prevX = baseX + ((i - 1) * (graphWidth / numDays));
-      int prevY = baseY - map(temps[i - 1], -20, 30, 0, graphHeight);
-      tft.drawLine(prevX, prevY, x, y, TFT_GREEN);  // Annan färg än timdiagrammet
+      int prevY = baseY - map(data[i - 1], minVal, maxVal, 0, graphHeight);
+      tft.drawLine(prevX, prevY, x, y, color);
     }
 
-    // Visa dagsetiketter (var 5:e dag)
+    // Rita datapunkter som små cirklar
+    tft.fillCircle(x, y, 2, color);
+
+    // Visa dagsetiketter
     if (i % 5 == 0 || i == numDays - 1) {
       tft.drawString(String(i + 1) + "d", x - 5, baseY + 5);
     }
   }
+
+  // Rita enkel förklaring
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.drawString("Data: SMHI Open Data", 5, 155);
 }
 
 /*Tar in vilken stad det är från city för att sedan hämta rätt API via lon och lat.
@@ -275,89 +324,79 @@ void displayNext24H(City city){
 }
 
 void displayHistoricalData(City city) {
-  // Väderdata hämtas från SMHI:s öppna API (https://opendata.smhi.se)
-  // Licens: Creative Commons Attribution 4.0 (CC BY 4.0)
-  String url = "https://opendata-download-metobs.smhi.se/api/version/latest/parameter/1/station/"
-  + String(city.stationid) + "/period/latest-months/data.json";
-
-  HTTPClient client;
-  client.begin(url);
-  int httpCode = client.GET();
-
-  if (httpCode != 200) {
-    tft.fillScreen(TFT_BLACK);
-    tft.drawString("Fel vid hämtning av historik!", 10, 10);
-    return;
-  }
-
-  // Läs svar om du vill
-  String payload = client.getString();
-
-
-  if (httpCode != HTTP_CODE_OK) {
-    tft.fillScreen(TFT_BLACK);
-    tft.drawString("Kunde inte hämta data", 10, 10);
-    client.end();
-    delay(2000);
-    return;
-  }
-
-  // Parsa JSON
-  DynamicJsonDocument doc(8192); // Anpassa storlek efter behov (skapar ett uttryme i minnet)
-  deserializeJson(doc, payload);
-
-
-
-  // Extrahera och rita data
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(2);
-  tft.drawString("Historisk data", 10, 10);
+  tft.drawString("Historical Data", 10, 10);
   tft.setCursor(0, 15);
   tft.setTextSize(1);
   tft.println(city.name);
 
-  JsonArray values = doc["value"];
-  float historicalTemps[30] = {0};
-String lastDate = "";
-int count = 0;
-
-for (JsonObject v : values) {
-  String dateTime = v["date"];
-  String dateOnly = dateTime.substring(0, 10);
-
-  // Välj bara EN mätning per dag
-  if (dateOnly != lastDate) {
-    float temp = v["value"];
-    if (!isnan(temp)) {
-      historicalTemps[count] = temp;
-      count++;
-      lastDate = dateOnly;
-    }
+  if (currentSettings.histShowTemperature) {
+      fetchAndDrawParameter(city, 1, "Temp (°C)", TFT_RED);
+  }
+  if (currentSettings.histShowHumidity) {
+      fetchAndDrawParameter(city, 6, "Humidity (%)", TFT_BLUE);
+  }
+  if (currentSettings.histShowWindSpeed) {
+      fetchAndDrawParameter(city, 4, "Wind (m/s)", TFT_GREEN);
   }
 
-  if (count >= 30) break;
+  tft.drawString("Menu", 270, 150);
+  tft.drawString("Data: SMHI Open Data", 5, 155);
 }
 
+void fetchAndDrawParameter(City city, int parameter, String title, uint16_t color) {
+  String url = "https://opendata-download-metobs.smhi.se/api/version/latest/parameter/" +
+             String(parameter) + "/station/" + String(city.stationid) +
+             "/period/latest-months/data.json";
 
-  // Rita diagrammet
-  drawMonthlyGraph(historicalTemps, count);
+  HTTPClient client;
+  client.begin(url);
+  client.setTimeout(10000);
+
+  int httpCode = client.GET();
+
+  if (httpCode == HTTP_CODE_OK) {
+      JsonDocument doc;
+      DeserializationError error = deserializeJson(doc, client.getString());
+
+      if (!error) {
+          float data[30] = {0};
+          int count = 0;
+          String lastDate = "";
+
+          JsonArray values = doc["value"];
+          for (JsonObject v : values) {
+              if (count >= 30) break;
+
+              String dateTime = v["date"].as<String>();
+              String dateOnly = dateTime.substring(0, 10);
+
+              if (dateOnly != lastDate) {
+                  float value = v["value"];
+                  if (!isnan(value)) {
+                      data[count] = value;
+                      count++;
+                      lastDate = dateOnly;
+                  }
+              }
+          }
+
+          drawMonthlyGraph(data, count, title, color);
+          delay(1500);
+      } else {
+          Serial.print("JSON error: ");
+          Serial.println(error.c_str());
+      }
+  } else {
+      Serial.print("HTTP error: ");
+      Serial.println(httpCode);
+  }
+
   client.end();
 }
 
-/*Strukturerar formatet på settings där vi använder sant eller falskt för att säga
-om det är temp, luftfukt eller vindhastighet ska visas*/
-struct Settings {
-  bool showTemperature;
-  bool showHumidity;
-  bool showWindSpeed;
-  //Här bör eventuellt historical data ligga ?
-  City city;
-};
-
-// Här skapas defaultSettings och currentSettings.
-Settings defaultSettings;
-Settings currentSettings;
 
 
 
@@ -369,10 +408,13 @@ void saveDefaultsToFile() {
     return;
   }
 
-  StaticJsonDocument<256> doc;
+  DynamicJsonDocument doc(256);
   doc["showTemperature"] = defaultSettings.showTemperature;
   doc["showHumidity"] = defaultSettings.showHumidity;
   doc["showWindSpeed"] = defaultSettings.showWindSpeed;
+  doc["histShowTemperature"] = defaultSettings.histShowTemperature;
+  doc["histShowHumidity"] = defaultSettings.histShowHumidity;
+  doc["histShowWindSpeed"] = defaultSettings.histShowWindSpeed;
   doc["city"] = defaultSettings.city.name;
 
   serializeJson(doc, file);
@@ -395,7 +437,7 @@ void loadDefaultsFromFile() {
     return;
   }
 
-  StaticJsonDocument<256> doc;
+  DynamicJsonDocument doc(256);
 
   DeserializationError error = deserializeJson(doc, file);
 
@@ -411,6 +453,10 @@ void loadDefaultsFromFile() {
   defaultSettings.showTemperature = doc["showTemperature"] | false;
   defaultSettings.showHumidity = doc["showHumidity"] | false;
   defaultSettings.showWindSpeed = doc["showWindSpeed"] | false;
+  defaultSettings.histShowTemperature = doc["histShowTemperature"] | true;
+  defaultSettings.histShowHumidity = doc["histShowHumidity"] | false;
+  defaultSettings.histShowWindSpeed = doc["histShowWindSpeed"] | false;
+
 
   // Matcha city name till hela City struct objektet
   String cityName = doc["city"].as<String>();
@@ -476,44 +522,40 @@ void SettingsLayout(int selectedOption) {
   "Wind Speed",
   "Choose City",
   "Historical Data",
+  "Hist. Temperature",
+  "Hist. Humidity",
+  "Hist. Wind Speed",
   "Apply Defaults",
   "Configure Defaults"
   };
 
-  for (int i = 0; i < 7; i++) {
+  for (int i = 0; i < 10; i++) {
     String optionText = "  " + options[i];
 
-    // ON/OFF markörer bredvid alternativen för att visa vilka som är inställda eller ej
+    // Add ON/OFF markers
     if (i == 0) {
-      if (currentSettings.showTemperature) {
-        optionText += " [ON]";
-      } else {
-        optionText += " [OFF]";
-      }
+        optionText += currentSettings.showTemperature ? " [ON]" : " [OFF]";
     } else if (i == 1) {
-      if (currentSettings.showHumidity) {
-        optionText += " [ON]";
-      } else {
-        optionText += " [OFF]";
-      }
+        optionText += currentSettings.showHumidity ? " [ON]" : " [OFF]";
     } else if (i == 2) {
-      if (currentSettings.showWindSpeed) {
-        optionText += " [ON]";
-      } else {
-        optionText += " [OFF]";
-      }
+        optionText += currentSettings.showWindSpeed ? " [ON]" : " [OFF]";
+    } else if (i == 5) {
+        optionText += currentSettings.histShowTemperature ? " [ON]" : " [OFF]";
+    } else if (i == 6) {
+        optionText += currentSettings.histShowHumidity ? " [ON]" : " [OFF]";
+    } else if (i == 7) {
+        optionText += currentSettings.histShowWindSpeed ? " [ON]" : " [OFF]";
     }
 
-    tft.setCursor(40, startY + spacing * (i + 1));
+    int yPos = startY + spacing * (i + 1);
     if (i == selectedOption) {
-      tft.setTextColor(TFT_YELLOW, TFT_BLACK);  // Highlighta den valda inställningen
-      tft.drawString("> " + optionText, 40, startY + spacing * (i + 1));
+        tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+        tft.drawString("> " + optionText, 40, yPos);
     } else {
-      tft.setTextColor(TFT_WHITE, TFT_BLACK);   // Färg för ovalda inställningar
-      tft.drawString(optionText, 40, startY + spacing * (i + 1));
+        tft.setTextColor(TFT_WHITE, TFT_BLACK);
+        tft.drawString(optionText, 40, yPos);
     }
-  }
-
+}
 }
 
 
@@ -584,6 +626,10 @@ void setup() {
     defaultSettings.showTemperature = false;
     defaultSettings.showHumidity    = false;
     defaultSettings.showWindSpeed   = false;
+    defaultSettings.histShowTemperature = true;  // Default to showing temperature
+    defaultSettings.histShowHumidity = false;
+    defaultSettings.histShowWindSpeed = false;
+
     currentSettings = defaultSettings;
     saveDefaultsToFile();     // Skriv ut dem så att nästa boot inte är firstrun
     Serial.println("-> saved defaults.json");
@@ -636,7 +682,7 @@ void loop() {
     // Navigera nedåt längs Settings med översta knappen
     if (digitalRead(PIN_BUTTON_1) == LOW) {
       delay(300);
-      selectedOption = (selectedOption + 1) % 7;  // Gå tillbaka till översta inställningen om du trycker på knappen när du är vid nedersta inställningen
+      selectedOption = (selectedOption + 1) % 10;  // Gå tillbaka till översta inställningen om du trycker på knappen när du är vid nedersta inställningen
       SettingsLayout(selectedOption);  // Rita om settings screen med de nya valen
       delay(200);
     }
@@ -646,14 +692,18 @@ void loop() {
     if (digitalRead(PIN_BUTTON_2) == LOW) {
       if (selectedOption == 0) {  // "Show Temperature"
         currentSettings.showTemperature = !currentSettings.showTemperature;
-      }
-      else if (selectedOption == 1) {  // "Show Humidity"
-        currentSettings.showHumidity= !currentSettings.showHumidity;
-      }
-      else if (selectedOption == 2) {  // "Show Wind Speed"
-        currentSettings.showWindSpeed = !currentSettings.showWindSpeed;
+        SettingsLayout(selectedOption); // Uppdatera displayen med nya värden
       }
 
+      else if (selectedOption == 1) {  // "Show Humidity"
+        currentSettings.showHumidity= !currentSettings.showHumidity;
+      SettingsLayout(selectedOption); // Uppdatera displayen med nya värden
+      }
+
+      else if (selectedOption == 2) {  // "Show Wind Speed"
+        currentSettings.showWindSpeed = !currentSettings.showWindSpeed;
+        SettingsLayout(selectedOption); // Uppdatera displayen med nya värden
+      }
       /*U.S 4.3 - As a user, I want to select different cities to view their
       weather data for the historical data and starting screen forecast. */
       else if (selectedOption == 3) {  // "Choose City"
@@ -664,15 +714,28 @@ void loop() {
       else if (selectedOption == 4) { // "Historical Data"
         currentPage = 2;
       }
+      else if (selectedOption == 5){
+         currentSettings.histShowTemperature = !currentSettings.histShowTemperature;
+         SettingsLayout(selectedOption); // Uppdatera displayen med nya värden
+      }
+
+      else if (selectedOption == 6){
+         currentSettings.histShowHumidity = !currentSettings.histShowHumidity;
+         SettingsLayout(selectedOption); // Uppdatera displayen med nya värden
+      }
+      else if (selectedOption == 7){
+         currentSettings.histShowWindSpeed = !currentSettings.histShowWindSpeed;
+         SettingsLayout(selectedOption); // Uppdatera displayen med nya värden
+      }
 
       //U.S 4.4 - As a user, I want to reset settings to default via a menu option.
-      else if (selectedOption == 5) {  // "Apply Defaults"
+      else if (selectedOption == 8) {  // "Apply Defaults"
         currentSettings = defaultSettings;
         selectedCity = defaultSettings.city; // Reset city också
         Serial.println("Defaults applied.");
         currentPage = -1;
       }
-      else if (selectedOption == 6) {  //"Configure Defaults"
+      else if (selectedOption == 9) {  //"Configure Defaults"
         defaultSettings = currentSettings;  // Sätter nuvarande Settings till Default
         defaultSettings.city = selectedCity; // Detsamma för staden
         saveDefaultsToFile();  // Spara default settings till LittleFS
@@ -683,6 +746,7 @@ void loop() {
         Serial.println("Selected Option: " + String(selectedOption)); // Debug för andra val
       }
       delay(200);
+      while(digitalRead(PIN_BUTTON_2) == LOW);
     }
   }
 
