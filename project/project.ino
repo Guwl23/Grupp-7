@@ -28,8 +28,8 @@
 
 
 // Remember to remove these before commiting in GitHub
-String ssid = "iPhone";
-String password = "12345670";
+String ssid = "";
+String password = "";
 
 // "tft" is the graphics libary, which has functions to draw on the screen
 TFT_eSPI tft = TFT_eSPI();
@@ -423,8 +423,8 @@ void fetchAndDrawParameter(City city, int parameter, String title, uint16_t colo
 
 
 
-// Skapar funktion för att spara användarens valda default settings till en fil
-// Creates a function to save the users chosen default settings into a file
+
+// Creates a function to save the user's chosen default settings into a file
 void saveDefaultsToFile() {
   File file = LittleFS.open("/defaults.json", "w");
   if (!file) {
@@ -447,7 +447,8 @@ void saveDefaultsToFile() {
 }
 
 
-// Skapar funktion för att ladda in användarens valda default settings
+
+// Creates a function to load the user's chosen default settings.
 void loadDefaultsFromFile() {
   if (!LittleFS.exists("/defaults.json")) {
     Serial.println("Defaults file not found, using hardcoded defaults");
@@ -465,7 +466,7 @@ void loadDefaultsFromFile() {
 
   DeserializationError error = deserializeJson(doc, file);
 
-  // Stäng filen efter att ha läst den
+  // Closes the file after having read it.
   file.close();
 
   if (error) {
@@ -473,7 +474,7 @@ void loadDefaultsFromFile() {
     return;
   }
 
-  // Ge värden till defaultSettings
+  // Loads saved values from the file into the defaultSettings struct
   defaultSettings.showTemperature = doc["showTemperature"] | false;
   defaultSettings.showHumidity = doc["showHumidity"] | false;
   defaultSettings.showWindSpeed = doc["showWindSpeed"] | false;
@@ -482,7 +483,7 @@ void loadDefaultsFromFile() {
   defaultSettings.histShowWindSpeed = doc["histShowWindSpeed"] | false;
 
 
-  // Matcha city name till hela City struct objektet
+  // Matches city name to the entire  City struct object
   String cityName = doc["city"].as<String>();
   for (City c : cities) {
     if (c.name == cityName) {
@@ -491,7 +492,7 @@ void loadDefaultsFromFile() {
     }
   }
 
-  // Gör värden till currentSettings
+  // Gives the values to currentSettings, so that the user has them displayed when starting the device.
   currentSettings = defaultSettings;
   Serial.println("Defaults loaded from LittleFS");
 }
@@ -505,6 +506,8 @@ void loadDefaultsFromFile() {
  * @param message The text message to display (centered on screen)
  * @param selectedOption Reference to currently selected menu option (to maintain selection state)
  */
+
+ // Flashes a message to the user that its currently chosen settings (currentSettings) has been activated as defaults.
 void flashMessage(String message, int & selectedOption) {
   tft.setTextSize(2);
    // Calculate message positioning (centered horizontally and vertically)
@@ -523,9 +526,7 @@ void flashMessage(String message, int & selectedOption) {
 }
 
 
-/*Uppbyggnaden av settings funktionen där en bläddningsfunktion används
-...*/
-//U.S 4.1 - As a user, I want to access a settings menu to configure weather data display options.
+//Creating the design of the settings screen where a scrolling funcitonality is used.
 void SettingsLayout(int selectedOption) {
 
   tft.fillRect(0, 50, 240, 100, TFT_BLACK); // Rensa settings-listan
@@ -548,6 +549,7 @@ void SettingsLayout(int selectedOption) {
   "Apply Defaults",
   "Configure Defaults"
   };
+
 
   for (int i = 0; i < 10; i++) {
     String optionText = "  " + options[i];
@@ -632,14 +634,14 @@ void setup() {
   }
   root.close();
 
-  // Visa bootscreen
+  // Show bootscreen
   bootScreen();
 
   bool firstRun = !LittleFS.exists("/defaults.json");
   Serial.print("firstRun = "); Serial.println(firstRun);
 
   if (firstRun) {
-    // Första gången som programmet körs och användaren får frågan om choosecity
+    // The first ever time that the program is run. There, the user gets to choose city, which will also be its current default city
     chooseCity();
 
     defaultSettings.city = selectedCity;
@@ -651,11 +653,11 @@ void setup() {
     defaultSettings.histShowWindSpeed = false;
 
     currentSettings = defaultSettings;
-    saveDefaultsToFile();     // Skriv ut dem så att nästa boot inte är firstrun
+    saveDefaultsToFile();     // Prints them out, so that the next run is not firstrun.
     Serial.println("-> saved defaults.json");
   }
   else {
-    // Alla andra boots: Starta med de inställningarna som användaren har valt
+    // All other boots: Start with the settings chosen as default.
     loadDefaultsFromFile();
     selectedCity = defaultSettings.city;
   }
@@ -677,18 +679,18 @@ void loop() {
   static int selectedOption = 0;
 
     if (digitalRead(PIN_BUTTON_1) == LOW && currentPage == -1) {
-      currentPage    = 1;      // Gå till Settings
-      selectedOption = 0;      // Reset:a pilen till översta alternativet i Settings screen
+      currentPage    = 1;      // Go to Settings
+      selectedOption = 0;      // Reset the arrow to the first option in the settings screen
       delay(200);              // debounce
-      while (digitalRead(PIN_BUTTON_1) == LOW) delay(10);  // Vänta på att användaren ska släppa taget
-      return;                 // Förhindra att annan kod i settings screen som choose city körs direkt
+      while (digitalRead(PIN_BUTTON_1) == LOW) delay(10);  // Wait for user to let go
+      return;                  // Prevent other code in settings screen (like choose city) being run
     }
 
     if (digitalRead(PIN_BUTTON_2) == LOW && currentPage == -1) {
       currentPage = 0;        // Go to Forecast
       delay(200);
       while (digitalRead(PIN_BUTTON_2) == LOW) delay(10);
-      return;                 // Förhindra att annan kod i settings screen som choose city körs direkt
+      return;                 // Prevent other code in settings screen (like choose city) being run
     }
 
   /*US2.2B: As a user, I want to access the menu from anywhere in the program
@@ -699,30 +701,30 @@ void loop() {
   }
 
   if (currentPage == 1) {
-    // Navigera nedåt längs Settings med översta knappen
+    // Navigate downards in the settings list with the bottom button
     if (digitalRead(PIN_BUTTON_1) == LOW) {
       delay(300);
-      selectedOption = (selectedOption + 1) % 10;  // Gå tillbaka till översta inställningen om du trycker på knappen när du är vid nedersta inställningen
-      SettingsLayout(selectedOption);  // Rita om settings screen med de nya valen
+      selectedOption = (selectedOption + 1) % 10;  // Using a modulus logic to navigate back to the first option if the bottom button is pressed when at the last option
+      SettingsLayout(selectedOption);  // Redesign the settings layout with the new options.
       delay(200);
     }
 
-    // Välj alternativ med nedersta knappen
+    // Choose alternative with the top button
     //Del av US 4.1
     if (digitalRead(PIN_BUTTON_2) == LOW) {
       if (selectedOption == 0) {  // "Show Temperature"
-        currentSettings.showTemperature = !currentSettings.showTemperature;
-        SettingsLayout(selectedOption); // Uppdatera displayen med nya värden
+        currentSettings.showTemperature = !currentSettings.showTemperature; // If temperature is ON it will be OFF, and vice versa. Same logic for the other options.
+        SettingsLayout(selectedOption); // Update the display with new values
       }
 
       else if (selectedOption == 1) {  // "Show Humidity"
         currentSettings.showHumidity= !currentSettings.showHumidity;
-      SettingsLayout(selectedOption); // Uppdatera displayen med nya värden
+      SettingsLayout(selectedOption); // Update the display with new values
       }
 
       else if (selectedOption == 2) {  // "Show Wind Speed"
         currentSettings.showWindSpeed = !currentSettings.showWindSpeed;
-        SettingsLayout(selectedOption); // Uppdatera displayen med nya värden
+        SettingsLayout(selectedOption); // Update the display with new values
       }
       /*U.S 4.3 - As a user, I want to select different cities to view their
       weather data for the historical data and starting screen forecast. */
@@ -736,29 +738,29 @@ void loop() {
       }
       else if (selectedOption == 5){
          currentSettings.histShowTemperature = !currentSettings.histShowTemperature;
-         SettingsLayout(selectedOption); // Uppdatera displayen med nya värden
+         SettingsLayout(selectedOption); // Update the display with new values
       }
 
       else if (selectedOption == 6){
          currentSettings.histShowHumidity = !currentSettings.histShowHumidity;
-         SettingsLayout(selectedOption); // Uppdatera displayen med nya värden
+         SettingsLayout(selectedOption); // Update the display with new values
       }
       else if (selectedOption == 7){
          currentSettings.histShowWindSpeed = !currentSettings.histShowWindSpeed;
-         SettingsLayout(selectedOption); // Uppdatera displayen med nya värden
+         SettingsLayout(selectedOption); // Update the display with new values
       }
 
       //U.S 4.4 - As a user, I want to reset settings to default via a menu option.
       else if (selectedOption == 8) {  // "Apply Defaults"
         currentSettings = defaultSettings;
-        selectedCity = defaultSettings.city; // Reset city också
+        selectedCity = defaultSettings.city; // Reset city too
         Serial.println("Defaults applied.");
         currentPage = -1;
       }
       else if (selectedOption == 9) {  //"Configure Defaults"
         defaultSettings = currentSettings;  // Update default settings with current runtime settings
         defaultSettings.city = selectedCity; // Ensure selected city is also saved to defaults
-        saveDefaultsToFile();  // Spara default settings till LittleFS
+        saveDefaultsToFile();  // Save default settings to LittleFS file
         Serial.println("New defaults saved.");  // Log confirmation to serial monitor
         flashMessage("New defaults saved.", selectedOption);  // Show visual confirmation to user
       }
@@ -786,7 +788,7 @@ void loop() {
     // Forecast page (current weather view)
     else if (currentPage == 0) {
       tft.drawString("Forecast", 10, 10);
-      displayNext24H(selectedCity); ////Ritar grafen för 24 kommande timmar
+      displayNext24H(selectedCity); ////Paints graf for the next 24 hours
       tft.drawString("Menu", 290, 10);
       tft.drawString("Data: SMHI Open Data", 5, 150);
       }
