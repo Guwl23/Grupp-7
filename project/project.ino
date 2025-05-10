@@ -1,3 +1,13 @@
+/*
+ * Weather Station Firmware
+ * Version: 1.03
+ * Fetches and displays current and historical weather data from SMHI API
+ * Features:
+ * - 24-hour forecast graphs
+ * - Historical data (30 days)
+ * - Configurable settings saved to LittleFS
+ * - Multi-city support
+ */
 #include <Arduino.h>
 #include <esp_task_wdt.h>
 #include "freertos/FreeRTOS.h"
@@ -7,7 +17,7 @@
 #include "pin_config.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
-// Lägger till bibliotek för att spara default settings efter restart (LittleFS) och ett för att hantera filer
+// Libraries for persistent settings (LittleFS) and file operations
 #include <FS.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
@@ -44,7 +54,7 @@ void bootScreen() {
   delay(4000);
 }
 
-//Strukturerar formatet för citys för att kunna få rätt tillgång till API
+// Defines the city structure format for proper API access
 struct City {
   String name;
   float lon;
@@ -52,42 +62,41 @@ struct City {
   int stationid;
 };
 
-//Bygger upp citys för rätt tillgång till olika API:er
+// Defines city data structures for API access
 const City cities[] = {
   {"Stockholm", 18.0686, 59.3293,97200},
   {"Malmo", 13.0038, 55.6050,52350},
   {"Goteborg", 11.9746, 57.7089,71420},
   {"Karlskrona", 15.6500, 56.1833,65090}
 };
-/*Strukturerar formatet på settings där vi använder sant eller falskt för att säga
-om det är temp, luftfukt eller vindhastighet ska visas*/
+// Settings structure with boolean toggles for weather parameters
 struct Settings {
   bool showTemperature;
   bool showHumidity;
   bool showWindSpeed;
-  bool histShowTemperature;  // New: For historical temperature
-  bool histShowHumidity;     // New: For historical humidity
-  bool histShowWindSpeed;    // New: For historical wind speed
-  //Här bör eventuellt historical data ligga ?
+  bool histShowTemperature;  // For historical temperature
+  bool histShowHumidity;     // For historical humidity
+  bool histShowWindSpeed;    //For historical wind speed
   City city;
 };
 
-// Här skapas defaultSettings och currentSettings.
+// Create defaultSettings and currentSettings instances
 Settings defaultSettings;
 Settings currentSettings;
 City selectedCity;
 
+/* FUNCTION DECLARATIONS */
 void displayNext24H(City city);
 void displayHistoricalData(City city);
 void fetchAndDrawParameter(City city, int parameter, String title, uint16_t color);
 
-float temps[24];
-int symbols[24];
+float temps[24];// Array to store 24 temperature values (in Celsius)
+int symbols[24];// Array to store 24 weather symbol codes (Wsymb2 values from SMHI API)
 
 // SMHI Parameter IDs
-const int PARAM_TEMP = 1;
-const int PARAM_HUMIDITY = 6;
-const int PARAM_WIND_SPEED = 4;
+const int PARAM_TEMP = 1; // Temperature in Celsius
+const int PARAM_HUMIDITY = 6;// Relative humidity in %
+const int PARAM_WIND_SPEED = 4;// Wind speed in m/s
 
 /*Väljer en stad för att få åtkost till rätt API:er från city,
 den valda staden kan ändras vid kallelse av funktionen */
@@ -102,28 +111,28 @@ void chooseCity() {
   tft.setTextSize(2);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   delay(1000);
-
+ // City selection menu loop
   while (!chosen) {
-    tft.drawString("Choose City:", 20, 10);
-
+    tft.drawString("Choose City:", 20, 10); // Draw menu title
+      // Display all city options
     for (int i = 0; i < numCities; i++) {
-      int y = 40 + i * 20;  // Justera radposition
+      int y = 40 + i * 20; // Calculate vertical position for each menu item (spaced 20 pixels apart)
       if (i == currentIndex) {
-        tft.setTextColor(TFT_YELLOW, TFT_BLACK); // Highlightar aktuell stad
+        tft.setTextColor(TFT_YELLOW, TFT_BLACK);  // Highlight currently selected city
         tft.drawString("> " + city_options[i], 40, y);
       } else {
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
         tft.drawString("  " + city_options[i], 40, y);
       }
     }
-
+    // Handle button navigation (Button 1)
     if (digitalRead(PIN_BUTTON_1) == LOW) {
       currentIndex = (currentIndex + 1) % numCities;
       delay(300);
     }
-
+     // Handle selection confirmation (Button 2)
     if (digitalRead(PIN_BUTTON_2) == LOW) {
-      selectedCity = cities[currentIndex]; // Välj aktuell stad från cities
+      selectedCity = cities[currentIndex];
       chosen = true;
       delay(300);
     }
@@ -322,7 +331,13 @@ void displayNext24H(City city){
 
   client.end();
 }
+/*
+  Displays historical weather data for a given city
+  Shows temperature, humidity, and wind speed based on user settings
+  Data is fetched from SMHI's open data API
 
+ * @param city The city object containing station ID and name
+ */
 void displayHistoricalData(City city) {
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
@@ -331,7 +346,7 @@ void displayHistoricalData(City city) {
   tft.setCursor(0, 15);
   tft.setTextSize(1);
   tft.println(city.name);
-
+ // Display each parameter if enabled in settings
   if (currentSettings.histShowTemperature) {
       fetchAndDrawParameter(city, 1, "Temp (°C)", TFT_RED);
   }
@@ -341,11 +356,19 @@ void displayHistoricalData(City city) {
   if (currentSettings.histShowWindSpeed) {
       fetchAndDrawParameter(city, 4, "Wind (m/s)", TFT_GREEN);
   }
-
+// Draw footer menu items
   tft.drawString("Menu", 270, 150);
   tft.drawString("Data: SMHI Open Data", 5, 155);
 }
+/*
+  Fetches historical weather data from SMHI API and draws it as a graph
+  Handles one weather parameter at a time (temp, humidity, etc.)
 
+  @param city The city to get data for
+  @param parameter The SMHI parameter ID to fetch
+  @param title The display title for the parameter
+  @param color The color to use when drawing the graph
+ */
 void fetchAndDrawParameter(City city, int parameter, String title, uint16_t color) {
   String url = "https://opendata-download-metobs.smhi.se/api/version/latest/parameter/" +
              String(parameter) + "/station/" + String(city.stationid) +
@@ -372,7 +395,7 @@ void fetchAndDrawParameter(City city, int parameter, String title, uint16_t colo
 
               String dateTime = v["date"].as<String>();
               String dateOnly = dateTime.substring(0, 10);
-
+             // Only take one value per day
               if (dateOnly != lastDate) {
                   float value = v["value"];
                   if (!isnan(value)) {
@@ -382,7 +405,7 @@ void fetchAndDrawParameter(City city, int parameter, String title, uint16_t colo
                   }
               }
           }
-
+          // Draw the graph with the collected data
           drawMonthlyGraph(data, count, title, color);
           delay(1500);
       } else {
@@ -475,31 +498,27 @@ void loadDefaultsFromFile() {
 
 
 
-
+/**
+ * Displays a temporary message on screen and refreshes the settings menu
+ *
+ * @param message The text message to display (centered on screen)
+ * @param selectedOption Reference to currently selected menu option (to maintain selection state)
+ */
 void flashMessage(String message, int & selectedOption) {
   tft.setTextSize(2);
-  int textWidth = message.length() * 12;
-  int x = (tft.width() - textWidth) / 2;
-  int y = (tft.height() - 16) / 2;
-
+   // Calculate message positioning (centered horizontally and vertically)
+  int textWidth = message.length() * 12; // Approximate pixel width of text
+  int x = (tft.width() - textWidth) / 2; // Center X position
+  int y = (tft.height() - 16) / 2; // Center Y position
+// Clear message area with black rectangle (slightly larger than text)
   tft.fillRect(0, y - 5, tft.width(), 30, TFT_BLACK);
+   // Display message in green text
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
   tft.drawString(message, x, y);
   delay(1000);
   tft.fillRect(0, y - 5, tft.width(), 30, TFT_BLACK);
-
+ // Refresh settings menu to previous state
   SettingsLayout(selectedOption);
-
-  // Återvänd till settings menyn direkt efter
-  /*
-  currentPage = 1;
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextSize(2);
-  tft.drawString("Settings", 20, 10);
-  tft.setTextSize(float(1.5));
-  tft.drawString("Menu", 290, 150);
-  SettingsLayout(selectedOption);  // Rita om settings menyn med de sparade valen.
-  */
 }
 
 
@@ -665,7 +684,7 @@ void loop() {
     }
 
     if (digitalRead(PIN_BUTTON_2) == LOW && currentPage == -1) {
-      currentPage = 0;        // Gå till Forecast
+      currentPage = 0;        // Go to Forecast
       delay(200);
       while (digitalRead(PIN_BUTTON_2) == LOW) delay(10);
       return;                 // Förhindra att annan kod i settings screen som choose city körs direkt
@@ -736,40 +755,41 @@ void loop() {
         currentPage = -1;
       }
       else if (selectedOption == 9) {  //"Configure Defaults"
-        defaultSettings = currentSettings;  // Sätter nuvarande Settings till Default
-        defaultSettings.city = selectedCity; // Detsamma för staden
+        defaultSettings = currentSettings;  // Update default settings with current runtime settings
+        defaultSettings.city = selectedCity; // Ensure selected city is also saved to defaults
         saveDefaultsToFile();  // Spara default settings till LittleFS
-        Serial.println("New defaults saved.");
-        flashMessage("New defaults saved.", selectedOption);
+        Serial.println("New defaults saved.");  // Log confirmation to serial monitor
+        flashMessage("New defaults saved.", selectedOption);  // Show visual confirmation to user
       }
       else {
-        Serial.println("Selected Option: " + String(selectedOption)); // Debug för andra val
+        Serial.println("Selected Option: " + String(selectedOption));
       }
       delay(200);
       while(digitalRead(PIN_BUTTON_2) == LOW);
     }
   }
 
-
+// Check if we need to redraw the screen due to page change
   if (currentPage != lastPage) {
     tft.fillScreen(TFT_BLACK);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextSize(2);
-
+   // Main home screen view (page -1)
     if (currentPage == -1) {
-      displayNext24H(selectedCity);  //Ritar grafen för 24 kommande timmar på startsidan
-      tft.drawString("Forecast", 225, 10); //Knappen för forecast
-      tft.drawString("Settings", 225, 140); //Knappen för settings
+      displayNext24H(selectedCity);  // Display 24-hour forecast graph as the primary content
+      // Uses the currently selected city's data
+      tft.drawString("Forecast", 225, 10); // Top button - Forecast (redundant on home screen but shown for consistency)
+      tft.drawString("Settings", 225, 140); // Bottom button - Settings
       tft.drawString("Data: SMHI Open Data", 5, 150);
     }
-
+    // Forecast page (current weather view)
     else if (currentPage == 0) {
       tft.drawString("Forecast", 10, 10);
       displayNext24H(selectedCity); ////Ritar grafen för 24 kommande timmar
       tft.drawString("Menu", 290, 10);
       tft.drawString("Data: SMHI Open Data", 5, 150);
       }
-
+    // Settings page rendering
     else if (currentPage == 1) {
       tft.drawString("Settings", 20, 10);
       tft.setTextSize(float(1.5));
