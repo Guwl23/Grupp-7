@@ -98,8 +98,9 @@ const int PARAM_TEMP = 1; // Temperature in Celsius
 const int PARAM_HUMIDITY = 6;// Relative humidity in %
 const int PARAM_WIND_SPEED = 4;// Wind speed in m/s
 
-/*Väljer en stad för att få åtkost till rätt API:er från city,
-den valda staden kan ändras vid kallelse av funktionen */
+
+/*Choosing a city in order to get access to the correct API:s from that city. The chosen city can be changed when
+calling the function. */
 void chooseCity() {
   int currentIndex = 0;
   bool chosen = false;
@@ -138,7 +139,7 @@ void chooseCity() {
     }
   }
 
-  // Bekräftelsevisning
+  // Confirmation shown
   tft.fillScreen(TFT_BLACK);
   tft.drawString("Vald stad: " + selectedCity.name, 30, 60);
   delay(1000);
@@ -146,26 +147,27 @@ void chooseCity() {
 
 
 
-/* Ritar upp grafaxlarna samt axelnumreringen för grafen på displayen.
-Den ritar även upp punkterna för temperaturen och vädersymbolen över temperatur punkten.
-Denna kallas sedan på från displayNext24H*/
+
+
+/* Draws the axis of the graph plus the axis numbering on the display. It also draws the temperature and weather
+symbol for temperature. This is later called by displayNext24H.*/
 void drawTempGraph(float temps[], int symbols[]) {
   tft.setTextColor(TFT_WHITE);
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(1);
   tft.drawString("Temperatur kommande 24 timmar", 10, 0);
 
-  //Y-axeln mellan 0 och 30 grader
+  //Y-axis between 0 and 30 degrees
   int graphHeight = 100;
   int graphWidth = 220;
   int baseY = 130;
   int baseX = 20;
 
-  //Ritar diagram axlarna
-  tft.drawLine(baseX, baseY - graphHeight, baseX, baseY, TFT_WHITE); //Y-axeln
-  tft.drawLine(baseX, baseY, baseX + graphWidth, baseY, TFT_WHITE); //X-axeln
+  //Draws diagram axis
+  tft.drawLine(baseX, baseY - graphHeight, baseX, baseY, TFT_WHITE); //Y-axis
+  tft.drawLine(baseX, baseY, baseX + graphWidth, baseY, TFT_WHITE); //X-axis
 
-  //Ritar temperaturen längs y axeln
+  //Draws temperature along y-axis
   for (int t = -10; t <= 30; t += 10) {
     int y = baseY - map(t, -10, 30, 0, graphHeight);
     tft.drawLine(baseX - 5, y, baseX, y, TFT_WHITE);
@@ -176,7 +178,7 @@ void drawTempGraph(float temps[], int symbols[]) {
 
   for (int i = 0; i < 24; i++) {
     int x = baseX + (i * (graphWidth / 24));
-    int y = baseY - ((temps[i] + 10) * (graphHeight / 40.0)); //tempskala från -10 till 30 grader
+    int y = baseY - ((temps[i] + 10) * (graphHeight / 40.0)); //temp scale from -10 to 30 degrees
 
 
     if (i > 0) {
@@ -185,13 +187,13 @@ void drawTempGraph(float temps[], int symbols[]) {
       tft.drawLine(prevX, prevY, x, y, TFT_BLUE);
     }
 
-    int textY = y - 20; //Distansen mellan temp koordinat och symbol koordinat
+    int textY = y - 20; // Distance between temp coordinate and symbol coordinate
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextSize(1);
     tft.setCursor(x, textY);
     tft.print(symbols[i]);
 
-    //Visar var 3:e timme
+    //Shown every 3rd hour
     if (i % 3 == 0) {
       tft.setTextSize(1);
       tft.drawString(String(i) + "h", x - 5, baseY + 5);
@@ -201,21 +203,21 @@ void drawTempGraph(float temps[], int symbols[]) {
 
 
 void drawMonthlyGraph(float data[], int numDays, String title, uint16_t color) {
-  // Rensa bara diagramområdet (behåll menytexter etc)
+  // Only clear the diagram area (keemp meny text etc)
   tft.fillRect(0, 40, 320, 100, TFT_BLACK);
 
-  // Rita titel med angiven färg
+  // Draw title with chosen color
   tft.setTextColor(color, TFT_BLACK);
   tft.setTextSize(1);
   tft.drawString(title + " senaste " + String(numDays) + " dagar", 10, 40);
 
-  // Diagraminställningar
+  // Diagramsettings
   int graphHeight = 80;
   int graphWidth = 220;
   int baseY = 120;
   int baseX = 20;
 
-  // Hitta min/max-värden för automatisk skalning
+  // Find min/max-values for automatic scaling
   float minVal = data[0];
   float maxVal = data[0];
   for (int i = 1; i < numDays; i++) {
@@ -223,56 +225,57 @@ void drawMonthlyGraph(float data[], int numDays, String title, uint16_t color) {
     if (data[i] > maxVal) maxVal = data[i];
   }
 
-  // Justera skalningen för bättre visning
-  minVal = floor(minVal) - 2;  // Rundar ner och ger lite marginal
-  maxVal = ceil(maxVal) + 2;   // Rundar upp och ger lite marginal
-  if (maxVal - minVal < 5) maxVal = minVal + 5; // Förhindrar för platta diagram
+  // Adjust scaling for enhanced viewing
+  minVal = floor(minVal) - 2;  // Rounds down and gives some marginal
+  maxVal = ceil(maxVal) + 2;   // Rounds up and gives some marginal
+  if (maxVal - minVal < 5) maxVal = minVal + 5; // Prevents the diagram being too flat
 
-  // Rita Y-axel med skalmarkeringar
+  // Draw Y-axis with scaling markers
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   for (int i = 0; i <= 5; i++) {
     float value = minVal + (maxVal - minVal) * i / 5;
     int y = baseY - (graphHeight * i / 5);
     tft.drawLine(baseX - 5, y, baseX, y, TFT_WHITE);
     tft.setCursor(0, y - 6);
-    tft.print(String(value, 1)); // Visar med 1 decimal
+    tft.print(String(value, 1)); // Display with 1 decimal
   }
 
-  // Rita X-axel
+  // Draw X-axis
   tft.drawLine(baseX, baseY, baseX + graphWidth, baseY, TFT_WHITE);
 
-  // Rita datalinjen med angiven färg
+  // Show dataline with chosen color
   for (int i = 0; i < numDays; i++) {
     int x = baseX + (i * (graphWidth / numDays));
     int y = baseY - map(data[i], minVal, maxVal, 0, graphHeight);
 
-    // Rita linje till föregående punkt
+    // Show line to past point
     if (i > 0) {
       int prevX = baseX + ((i - 1) * (graphWidth / numDays));
       int prevY = baseY - map(data[i - 1], minVal, maxVal, 0, graphHeight);
       tft.drawLine(prevX, prevY, x, y, color);
     }
 
-    // Rita datapunkter som små cirklar
+    // Show datapoints with small circles
     tft.fillCircle(x, y, 2, color);
 
-    // Visa dagsetiketter
+    // Show day-labels
     if (i % 5 == 0 || i == numDays - 1) {
       tft.drawString(String(i + 1) + "d", x - 5, baseY + 5);
     }
   }
 
-  // Rita enkel förklaring
+  // Show simple explanation
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.drawString("Data: SMHI Open Data", 5, 155);
 }
 
-/*Tar in vilken stad det är från city för att sedan hämta rätt API via lon och lat.
-Därefter görs detta till ett läsbart dokument av data. Där timeSeries hittas och
-vidare sökes sedan 24 första validTimes för att få ut de 24 första temperaturerna
-samt vädersymbolerna.*/
+
+/*Takes the city from 'city' to retrieve the correct API using latitude and longitude.
+Then, the data is converted into a readable format. From this, the timeSeries is found,
+and the first 24 validTimes are used to extract the first 24 temperatures
+as well as the weather symbols.*/
 void displayNext24H(City city){
-  // Väderdata hämtas från SMHI:s öppna API (https://opendata.smhi.se)
+  // Weather data is collected from SMHI open API (https://opendata.smhi.se)
   // Licens: Creative Commons Attribution 4.0 (CC BY 4.0)
   String url = "https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/"
     + String(city.lon, 0) + "/lat/" + String(city.lat, 0) + "/data.json" ;
@@ -455,8 +458,8 @@ void loadDefaultsFromFile() {
     return;
   }
 
-
-  File file = LittleFS.open("/defaults.json", "r");  // Öppna filen för att läsa den
+  // Open the file to read it
+  File file = LittleFS.open("/defaults.json", "r");
   if (!file) {
     Serial.println("Failed to open defaults file");
     return;
@@ -466,7 +469,7 @@ void loadDefaultsFromFile() {
 
   DeserializationError error = deserializeJson(doc, file);
 
-  // Closes the file after having read it.
+  // Closes the file after having read it
   file.close();
 
   if (error) {
@@ -514,7 +517,7 @@ void flashMessage(String message, int & selectedOption) {
   int textWidth = message.length() * 12; // Approximate pixel width of text
   int x = (tft.width() - textWidth) / 2; // Center X position
   int y = (tft.height() - 16) / 2; // Center Y position
-// Clear message area with black rectangle (slightly larger than text)
+  // Clear message area with black rectangle
   tft.fillRect(0, y - 5, tft.width(), 30, TFT_BLACK);
    // Display message in green text
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
@@ -529,7 +532,7 @@ void flashMessage(String message, int & selectedOption) {
 //Creating the design of the settings screen where a scrolling funcitonality is used.
 void SettingsLayout(int selectedOption) {
 
-  tft.fillRect(0, 50, 240, 100, TFT_BLACK); // Rensa settings-listan
+  tft.fillRect(0, 50, 240, 100, TFT_BLACK); // Clear settings list
 
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(1);
@@ -537,6 +540,7 @@ void SettingsLayout(int selectedOption) {
   int startY = 50;
   int spacing = 12;
 
+  // List of options in the Settings Menu
   String options[] = {
   "Temperature",
   "Humidity",
@@ -554,7 +558,7 @@ void SettingsLayout(int selectedOption) {
   for (int i = 0; i < 10; i++) {
     String optionText = "  " + options[i];
 
-    // Add ON/OFF markers
+    // ON/OFF markers next to options to clearly display what has been chosen by the user
     if (i == 0) {
         optionText += currentSettings.showTemperature ? " [ON]" : " [OFF]";
     } else if (i == 1) {
@@ -569,6 +573,8 @@ void SettingsLayout(int selectedOption) {
         optionText += currentSettings.histShowWindSpeed ? " [ON]" : " [OFF]";
     }
 
+    /* If the current index matches selectedOption, an arrow is formed beside it and it becomes yellow.
+     Otherwise, it is white like all others. */
     int yPos = startY + spacing * (i + 1);
     if (i == selectedOption) {
         tft.setTextColor(TFT_YELLOW, TFT_BLACK);
@@ -618,7 +624,7 @@ void setup() {
   Serial.println("Connected to WiFi");
   // Add your code bellow
 
-  // Startar LittleFS biblioteket för att kunna spara default settings i separat fil
+  // Starting LittleFS library in order to save default settings i in a separate file and save them after restarting device
   if (!LittleFS.begin(true)) {
     Serial.println("LittleFS mount (and format) failed.");
   }
@@ -653,7 +659,7 @@ void setup() {
     defaultSettings.histShowWindSpeed = false;
 
     currentSettings = defaultSettings;
-    saveDefaultsToFile();     // Prints them out, so that the next run is not firstrun.
+    saveDefaultsToFile();     // Prints them to Json document, so that the next run is not firstrun.
     Serial.println("-> saved defaults.json");
   }
   else {
@@ -760,7 +766,7 @@ void loop() {
       else if (selectedOption == 9) {  //"Configure Defaults"
         defaultSettings = currentSettings;  // Update default settings with current runtime settings
         defaultSettings.city = selectedCity; // Ensure selected city is also saved to defaults
-        saveDefaultsToFile();  // Save default settings to LittleFS file
+        saveDefaultsToFile();  // Save default settings to Json file
         Serial.println("New defaults saved.");  // Log confirmation to serial monitor
         flashMessage("New defaults saved.", selectedOption);  // Show visual confirmation to user
       }
