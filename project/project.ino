@@ -756,18 +756,19 @@ void loop() {
          SettingsLayout(selectedOption); // Update the display with new values
       }
 
-      //U.S 4.4 - As a user, I want to reset settings to default via a menu option.
+      // U.S 4.4 - As a user, I want to reset settings to default via a menu option.
       else if (selectedOption == 8) {  // "Apply Defaults"
         currentSettings = defaultSettings;
         selectedCity = defaultSettings.city; // Reset city too
         Serial.println("Defaults applied.");
         currentPage = -1;
       }
+      // U.S 4.5 - As a user, I want the microcontroller to store my default settings so that they are retained even after a restart.
       else if (selectedOption == 9) {  //"Configure Defaults"
-        defaultSettings = currentSettings;  // Update default settings with current runtime settings
+        defaultSettings = currentSettings;  // Update default settings with current settings
         defaultSettings.city = selectedCity; // Ensure selected city is also saved to defaults
         saveDefaultsToFile();  // Save default settings to Json file
-        Serial.println("New defaults saved.");  // Log confirmation to serial monitor
+        Serial.println("New defaults saved.");
         flashMessage("New defaults saved.", selectedOption);  // Show visual confirmation to user
       }
       else {
