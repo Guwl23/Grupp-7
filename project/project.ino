@@ -424,6 +424,7 @@ void fetchAndDrawParameter(City city, int parameter, String title, uint16_t colo
 
 
 // Skapar funktion för att spara användarens valda default settings till en fil
+// Creates a function to save the users chosen default settings into a file
 void saveDefaultsToFile() {
   File file = LittleFS.open("/defaults.json", "w");
   if (!file) {
