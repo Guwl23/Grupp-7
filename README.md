@@ -91,7 +91,9 @@ Purpose: This is useful when working with serial devices (like Arduino or other 
 
 []U.S 2.2B - As a user, I want to access the menu from anywhere in the program by holding both buttons simultaneously.
 
-[]U.S 3.1 - As a user, I want to have a menu option and screen to view historical weather data
+[]U.S 3.1 - As a user, I want to have a menu option and screen to view historical weather data.
+
+[x]U.S 3.2B - As a user, I want to view historical temperature data (latest months) for a selected city and interact with the historical graph using the two buttons to 1. View 7 days of data 2. Scroll backward or forward by 1 day.
 
 []U.S 4.1 - As a user, I want to access a settings menu to configure weather data display options.
 
@@ -104,3 +106,7 @@ Purpose: This is useful when working with serial devices (like Arduino or other 
 []U.S 4.5 - As a user, I want to change my default city and weather parameter, so they are automatically selected when I start the device.
 
 []U.S 4.6 - As a user, I want the microcontroller to store my default settings so that they are retained even after a restart.
+
+[x]U.S 5.1 - As a user, I want to access a menu option and screen to view the weather forecast for all of Sweden.
+
+[x]U.S 5.2 - As a user, I want to see the forecast for each administrative area of Sweden (“Landskap”) on a map, with: o Color-coded temperature zones. o Weather symbols for each area. o A looped animation displaying the hourly forecast for the next 24 hours.
