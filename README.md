@@ -75,3 +75,32 @@ To connect to WiFi, you need to provide your SSID and password in the [project/p
 * `$()`: executes this command and substitutes its output.
 
 Purpose: This is useful when working with serial devices (like Arduino or other USB-connected hardware). By adding yourself to the device's group, you gain permission to access `/dev/ttyACM0` without needing sudo every time.
+
+## Features
+
+[]=Done
+[x]=Ongoing
+
+[]U.S 1.1 - As a user, I want to see a boot screen to display the current program version and team number for at least 3 seconds.
+
+[x]U.S1.2B - As a user, I want to see temperature and weather conditions with symbols (e.g., clear sky, rain, snow, thunder) for the next 24 hours on the starting screen.
+
+[]U.S 2.1 - As a user, I want a menu to navigate between different screens using the two buttons, like forecast and settings screen.
+
+[]U.S 2.2 - As a user, I want to access the menu (overview of screens) from anywhere in the program.
+
+[]U.S 2.2B - As a user, I want to access the menu from anywhere in the program by holding both buttons simultaneously.
+
+[]U.S 3.1 - As a user, I want to have a menu option and screen to view historical weather data
+
+[]U.S 4.1 - As a user, I want to access a settings menu to configure weather data display options.
+
+[]U.S 4.2 - As a user, I want to select weather parameters (e.g., temperature, humidity, wind speed) in the settings menu to customize the historical graph.
+
+[]U.S 4.3 - As a user, I want to select different cities to view their weather data for the historical data and starting screen forecast.
+
+[]U.S 4.4 - As a user, I want to reset settings to default via a menu option.
+
+[]U.S 4.5 - As a user, I want to change my default city and weather parameter, so they are automatically selected when I start the device.
+
+[]U.S 4.6 - As a user, I want the microcontroller to store my default settings so that they are retained even after a restart.
