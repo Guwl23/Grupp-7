@@ -28,8 +28,8 @@
 
 
 // Remember to remove these before commiting in GitHub
-String ssid = "";
-String password = "";
+String ssid = "iPhone";
+String password = "12345670";
 
 // "tft" is the graphics libary, which has functions to draw on the screen
 TFT_eSPI tft = TFT_eSPI();
@@ -537,7 +537,7 @@ void SettingsLayout(int selectedOption) {
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(1);
 
-  int startY = 50;
+  int startY = 30;
   int spacing = 12;
 
   // List of options in the Settings Menu
